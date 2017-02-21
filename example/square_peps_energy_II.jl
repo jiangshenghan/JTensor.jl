@@ -1,4 +1,4 @@
-#push!(LOAD_PATH,"C:\\Users\\Shenghan\\Dropbox\\Code\\JTensor.jl\\src")
+include("../src/JTensor.jl")
 using JTensor
 
  """
