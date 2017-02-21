@@ -3,6 +3,7 @@ include("../src/JTensor.jl")
 using JTensor
 using Base.Test
 
+println("test JTensor!")
 
 #test jcontract
 #1. vector*vector
