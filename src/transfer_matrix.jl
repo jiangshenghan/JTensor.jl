@@ -247,7 +247,7 @@ Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_br
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 """
-function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=10)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
@@ -268,30 +268,35 @@ function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1
 
     for iter=1:maxiter
         leftlm=LinearMap([Fl,Al,T,Tc,conj(Al)],[[1,2,3,4],[1,-1,5,6],[7,2,-2,5,8],[7,3,-3,6,9],[4,-4,8,9]],1,elemtype=elemtype)
-        λl,vl=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep/100,err_mean/200,1e-15))
+        leig_res=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λl,vl=leig_res
         λl=λl[1]
         err_Fl=1-abs(dot(vl[:],Fl[:]))/(norm(vl[:])*norm(Fl[:]))
         Fl=reshape(vl[:],χ,Dh,Dh,χ)
 
         rightlm=LinearMap([Fr,Ar,T,Tc,conj(Ar)],[[1,2,3,4],[-1,1,5,6],[7,-2,2,5,8],[7,-3,3,6,9],[-4,4,8,9]],1,elemtype=elemtype)
-        λr,vr=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep/100,err_mean/200,1e-15))
+        reig_res=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λr,vr=reig_res
         λr=λr[1]
         err_Fr=1-abs(dot(vr[:],Fr[:]))/(norm(vr[:])*norm(Fr[:]))
         Fr=reshape(vr[:],χ,Dh,Dh,χ)
         Fr=Fr/abs(jcontract([Fl,Fr],[[1,2,3,4],[1,2,3,4]]))
 
         Aclm=LinearMap([Fl,Ac,T,Tc,Fr],[[1,2,3,-1],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[7,8,9,-2]],2,elemtype=elemtype)
-        λAc,vAc=eigs(Aclm,nev=1,v0=Ac[:],tol=max(ep/100,err_mean/200,1e-15))
+        Aceig_res=eigs(Aclm,nev=1,v0=Ac[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λAc,vAc=Aceig_res
         λAc=λAc[1]
         err_Ac=1-abs(dot(vAc[:],Ac[:]))/(norm(vAc[:])*norm(Ac[:]))
         Ac=reshape(vAc[:],χ,χ,Dv,Dv)
 
         Clm=LinearMap([Fl,C,Fr],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-        λC,vC=eigs(Clm,nev=1,v0=C[:],tol=max(ep/100,err_mean/200,1e-15))
+        Ceig_res=eigs(Clm,nev=1,v0=C[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λC,vC=Ceig_res
         λC=λC[1]
         err_C=1-abs(dot(vC[:],C[:]))/(norm(vC[:])*norm(C[:]))
         C=reshape(vC[:],χ,χ)
 
+        @printf("eig iter info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n Aciter=%d, Acnmult=%d \n Citer=%d, Cnmult=%d \n",leig_res[4],leig_res[5],reig_res[4],reig_res[5],Aceig_res[4],Aceig_res[5],Ceig_res[4],Ceig_res[5])
         println("singlue values:")
         println(svd(C)[2])
 
@@ -317,12 +322,12 @@ function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1
     end
 
     leftlm=LinearMap([Fl,Al,T,Tc,conj(Al)],[[1,2,3,4],[1,-1,5,6],[7,2,-2,5,8],[7,3,-3,6,9],[4,-4,8,9]],1,elemtype=elemtype)
-    λl,vl=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep/100,err_mean/200,1e-15))
+    λl,vl=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
     err_Fl=1-abs(dot(vl[:],Fl[:]))/(norm(vl[:])*norm(Fl[:]))
     Fl=reshape(vl[:],χ,Dh,Dh,χ)
 
     rightlm=LinearMap([Fr,Ar,T,Tc,conj(Ar)],[[1,2,3,4],[-1,1,5,6],[7,-2,2,5,8],[7,-3,3,6,9],[-4,4,8,9]],1,elemtype=elemtype)
-    λr,vr=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep/100,err_mean/200,1e-15))
+    λr,vr=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
     err_Fr=1-abs(dot(vr[:],Fr[:]))/(norm(vr[:])*norm(Fr[:]))
     Fr=reshape(vr[:],χ,Dh,Dh,χ)
     Fr=Fr/abs(jcontract([Fl,C,conj(C),Fr],[[1,2,3,4],[1,5],[4,6],[5,2,3,6]])) #Normalization
@@ -349,7 +354,7 @@ other definition is similiar as in square_duc_mpofp
 
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean)
 """
-function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=10)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
@@ -375,7 +380,8 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C
 
     for iter=1:maxiter
         leftlm=LinearMap([FAl,Al,TA,conj(TA),conj(Al),Bl,TB,conj(TB),conj(Bl)],[[1,2,3,4],[1,10,5,6],[7,2,11,5,8],[7,3,12,6,9],[4,13,8,9],[10,-1,14,15],[16,11,-2,14,17],[16,12,-3,15,18],[13,-4,17,18]],1,elemtype=elemtype)
-        λAl,vAl=eigs(leftlm,nev=1,v0=FAl[:],tol=max(ep/100,err_mean/200,1e-15))
+        leig_res=eigs(leftlm,nev=1,v0=FAl[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λAl,vAl=leig_res
         λAl=λAl[1]
         err_FAl=1-abs(dot(vAl[:],FAl[:]))/(norm(vAl[:])*norm(FAl[:]))
         FAl=reshape(vAl[:],χ,Dh,Dh,χ)
@@ -384,7 +390,8 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C
         FBl=vBl
 
         rightlm=LinearMap([FAr,Ar,TA,conj(TA),conj(Ar),Br,TB,conj(TB),conj(Br)],[[1,2,3,4],[10,1,5,6],[7,11,2,5,8],[7,12,3,6,9],[13,4,8,9],[-1,10,14,15],[16,-2,11,14,17],[16,-3,12,15,18],[-4,13,17,18]],1,elemtype=elemtype)
-        λAr,vAr=eigs(rightlm,nev=1,v0=FAr[:],tol=max(ep/100,err_mean/200,1e-15))
+        reig_res=eigs(rightlm,nev=1,v0=FAr[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λAr,vAr=reig_res
         λAr=λAr[1]
         err_FAr=1-abs(dot(vAr[:],FAr[:]))/(norm(vAr[:])*norm(FAr[:]))
         FAr=reshape(vAr[:],χ,Dh,Dh,χ)
@@ -395,29 +402,31 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C
         FBr=FBr/abs(jcontract([FBl,FBr],[[1,2,3,4],[1,2,3,4]]))
 
         Aclm=LinearMap([FAl,Ac,TA,conj(TA),FAr],[[1,2,3,-1],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[7,8,9,-2]],2,elemtype=elemtype)
-        λAc,vAc=eigs(Aclm,nev=1,v0=Ac[:],tol=max(ep/100,err_mean/200,1e-15))
+        Aceig_res=eigs(Aclm,nev=1,v0=Ac[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
+        λAc,vAc=Aceig_res
         λAc=λAc[1]
         err_Ac=1-abs(dot(vAc[:],Ac[:]))/(norm(vAc[:])*norm(Ac[:]))
         Ac=reshape(vAc[:],χ,χ,Dv,Dv)
 
         Bclm=LinearMap([FBl,Bc,TB,conj(TB),FBr],[[1,2,3,-1],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[7,8,9,-2]],2,elemtype=elemtype)
-        λBc,vBc=eigs(Bclm,nev=1,v0=Bc[:],tol=max(ep/100,err_mean/200,1e-15))
+        λBc,vBc=eigs(Bclm,nev=1,v0=Bc[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
         λBc=λBc[1]
         err_Bc=1-abs(dot(vBc[:],Bc[:]))/(norm(vBc[:])*norm(Bc[:]))
         Bc=reshape(vBc[:],χ,χ,Dv,Dv)
 
         C1lm=LinearMap([FBl,C1,FAr],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-        λC1,vC1=eigs(C1lm,nev=1,v0=C1[:],tol=max(ep/100,err_mean/200,1e-15))
+        λC1,vC1=eigs(C1lm,nev=1,v0=C1[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
         λC1=λC1[1]
         err_C1=1-abs(dot(vC1[:],C1[:]))/(norm(vC1[:])*norm(C1[:]))
         C1=reshape(vC1[:],χ,χ)
 
         C2lm=LinearMap([FAl,C2,FBr],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-        λC2,vC2=eigs(C2lm,nev=1,v0=C2[:],tol=max(ep/100,err_mean/200,1e-15))
+        λC2,vC2=eigs(C2lm,nev=1,v0=C2[:],tol=max(ep/100,err_mean/200,1e-15),ncv=ncv)
         λC2=λC2[1]
         err_C2=1-abs(dot(vC2[:],C2[:]))/(norm(vC2[:])*norm(C2[:]))
         C2=reshape(vC2[:],χ,χ)
 
+        @printf("eig iter info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n Aciter=%d, Acnmult=%d \n",leig_res[4],leig_res[5],reig_res[4],reig_res[5],Aceig_res[4],Aceig_res[5])
         println("BA singular values:")
         println(svd(C1)[2])
         println("AB singular values:")
