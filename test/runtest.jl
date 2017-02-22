@@ -4,6 +4,7 @@ using JTensor
 using Base.Test
 
 println("test JTensor!")
+flush(STDOUT)
 
 #test jcontract
 #1. vector*vector
@@ -63,8 +64,8 @@ T[1,1,1,1]=T[2,2,2,2]=1
 BIsing(β)=[exp(β) exp(-β); exp(-β) exp(β)]
 TIsing(β)=jcontract([T,BIsing(β),BIsing(β)],[[1,2,-2,-4],[-1,1],[-3,2]])
 β=rand();
-r1=square_mpofp(TIsing(β),20)[7]
+r1=square_mpofp(TIsing(β),20)[end-1]
 r2=ZIsing(β)
-r3=square_duc_mpofp(TIsing(β),TIsing(β),20)[9]
+r3=square_duc_mpofp(TIsing(β),TIsing(β),20)[end-1]
 @test abs(r1-r2)/abs(r1)<1e-5
 @test abs(r1-sqrt(r3))/abs(r1)<1e-5
