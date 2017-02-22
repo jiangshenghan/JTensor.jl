@@ -17,7 +17,7 @@ e0 is used to set initial tol to obtain eigenvectors
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 Fl,Fr are left and right eigenvectors, with legs orders (up,middle,down)
 """
-function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_mpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     @printf("χ=%d, maxiter=%d, ep=%e, e0=%e \n",χ,maxiter,ep,e0)
     #initialization
@@ -26,12 +26,12 @@ function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Comp
 
     if Al==[] Al=permutedims(reshape(qr(rand(elemtype,χ*Dv,χ))[1],χ,Dv,χ),[1,3,2]) end
     if Ar==[] Ar=permutedims(Al,[2,1,3]) end
+    if Ac==[] Ac=rand(elemtype,χ,χ,Dv) end
+    if C==[] C=rand(elemtype,χ,χ) end
+    if Fl==[] Fl=rand(elemtype,χ,Dh,χ) end
+    if Fr==[] Fr=rand(elemtype,χ,Dh,χ) end
 
     free_energy=0.
-    Fl=rand(elemtype,χ,Dh,χ)
-    Fr=rand(elemtype,χ,Dh,χ)
-    Ac=rand(elemtype,χ,χ,Dv)
-    C=rand(elemtype,χ,χ)
 
     errFE=err_Fl=err_Fr=err_Ac=err_C=err_Al=err_Ar=err_mean=e0
 
@@ -124,9 +124,9 @@ FAl  TA  TB         TB  TA  FAr
 FBl  TB  TA         TA  TB  FBr
      Bl' Al'        Ar' Br'
 
-returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
+returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean)
 """
-function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     @printf("χ=%d, maxiter=%d, ep=%e, e0=%e \n",χ,maxiter,ep,e0)
     #initialization
@@ -138,15 +138,16 @@ function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxi
     if Bl==[] Bl=permutedims(reshape(qr(rand(elemtype,χ*Dv,χ))[1],χ,Dv,χ),[1,3,2]) end
     if Br==[] Br=permutedims(Bl,[2,1,3]) end
 
+    if Ac==[] Ac=rand(elemtype,χ,χ,Dv) end
+    if Bc==[] Bc=rand(elemtype,χ,χ,Dv) end
+    if C1==[] C1=rand(elemtype,χ,χ) end
+    if C2==[] C2=rand(elemtype,χ,χ) end
+    if FAl==[] FAl=rand(elemtype,χ,Dh,χ) end
+    if FAr==[] FAr=rand(elemtype,χ,Dh,χ) end
+    if FBl==[] FBl=rand(elemtype,χ,Dh,χ) end
+    if FBr==[] FBr=rand(elemtype,χ,Dh,χ) end
+
     free_energy=0.
-    FAl=rand(elemtype,χ,Dh,χ)
-    FAr=rand(elemtype,χ,Dh,χ)
-    FBl=rand(elemtype,χ,Dh,χ)
-    FBr=rand(elemtype,χ,Dh,χ)
-    Ac=rand(elemtype,χ,χ,Dv)
-    Bc=rand(elemtype,χ,χ,Dv)
-    C1=rand(elemtype,χ,χ)
-    C2=rand(elemtype,χ,χ)
 
     err_FAl=err_FAr=err_FBl=err_FBr=err_Ac=err_Bc=err_C1=err_C2=err_Al=err_Ar=err_Bl=err_Br=err_mean=e0
 
@@ -225,7 +226,7 @@ function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxi
         if err_mean<ep break end
     end
 
-    return Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean
+    return Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean
 
 end
 
@@ -246,7 +247,7 @@ ep indicates the precision (how far from the optimal state) that one wants obtai
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 """
-function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
@@ -256,12 +257,12 @@ function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Co
     Tc=conj(T);
     if Al==[] Al=permutedims(reshape(qr(rand(elemtype,χ*Dv^2,χ))[1],χ,Dv,Dv,χ),[1,4,2,3]) end
     if Ar==[] Ar=permutedims(Al,[2,1,3,4]) end
+    if Fl==[] Fl=rand(elemtype,χ,Dh,Dh,χ) end
+    if Fr==[] Fr=rand(elemtype,χ,Dh,Dh,χ) end
+    if Ac==[] Ac=rand(elemtype,χ,χ,Dv,Dv) end
+    if C==[] C=rand(elemtype,χ,χ) end
 
     free_energy=0.
-    Fl=rand(elemtype,χ,Dh,Dh,χ)
-    Fr=rand(elemtype,χ,Dh,Dh,χ)
-    Ac=rand(elemtype,χ,χ,Dv,Dv)
-    C=rand(elemtype,χ,χ)
 
     errFE=err_Fl=err_Fr=err_Ac=err_C=err_Al=err_Ar=err_mean=e0
 
@@ -346,9 +347,9 @@ legs orders for Al,Ar,Bl,Br are (left,right,down_ket,down_bra)
 ep indicates the precision (how far from the optimal state) that one wants obtain
 other definition is similiar as in square_duc_mpofp
 
-returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
+returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean)
 """
-function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
@@ -359,16 +360,16 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,ma
     if Ar==[] Ar=permutedims(Al,[2,1,3,4]) end
     if Bl==[] Bl=permutedims(reshape(qr(rand(elemtype,χ*Dv^2,χ))[1],χ,Dv,Dv,χ),[1,4,2,3]) end
     if Br==[] Br=permutedims(Bl,[2,1,3,4]) end
+    if Ac==[] Ac=rand(elemtype,χ,χ,Dv,Dv) end
+    if Bc==[] Bc=rand(elemtype,χ,χ,Dv,Dv) end
+    if C1==[] C1=rand(elemtype,χ,χ) end
+    if C2==[] C2=rand(elemtype,χ,χ) end
+    if FAl==[] FAl=rand(elemtype,χ,Dh,Dh,χ) end
+    if FAr==[] FAr=rand(elemtype,χ,Dh,Dh,χ) end
+    if FBl==[] FBl=rand(elemtype,χ,Dh,Dh,χ) end
+    if FBr==[] FBr=rand(elemtype,χ,Dh,Dh,χ) end
 
     free_energy=0.
-    FAl=rand(elemtype,χ,Dh,Dh,χ)
-    FAr=rand(elemtype,χ,Dh,Dh,χ)
-    FBl=rand(elemtype,χ,Dh,Dh,χ)
-    FBr=rand(elemtype,χ,Dh,Dh,χ)
-    Ac=rand(elemtype,χ,χ,Dv,Dv)
-    Bc=rand(elemtype,χ,χ,Dv,Dv)
-    C1=rand(elemtype,χ,χ)
-    C2=rand(elemtype,χ,χ)
 
     err_FAl=err_FAr=err_FBl=err_FBr=err_Ac=err_Bc=err_C1=err_C2=err_Al=err_Ar=err_Bl=err_Br=err_mean=e0
 
@@ -452,6 +453,6 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,ma
         if err_mean<ep break end
     end
 
-    return Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean
+    return Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean
 
 end
