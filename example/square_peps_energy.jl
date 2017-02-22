@@ -5,7 +5,7 @@ using JTensor
  Obtain NN Heisenberg energy for square peps state, translational invariant tensor is assumed
  For tensor T, legs order is (phys,left,up,right,down)
  """
- function square_peps_Heisenberg(T,χ;maxiter=20,err=1e-6)
+ function square_peps_Heisenberg(T,χ;maxiter=20,err=1e-8)
      d,D=size(T,1,2)
 
      Al,Ar,Ac,CA=square_dlmpofp(permutedims(T,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)

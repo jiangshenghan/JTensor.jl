@@ -2,7 +2,6 @@
 # this file stores functions which obtain fixed point for an mpo transfer matrix
 
 """
-function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
 Obtain fixed point for an mpo. Here translational invriant is assumed
 
 For the following case
@@ -13,11 +12,12 @@ For the following case
 For tensor T, legs order as (left,right,up,down)
 legs orders for Al,Ar,Ac are (left,right,down)
 ep indicates the precision (how far from the optimal state) that one wants obtain
+e0 is used to set initial tol to obtain eigenvectors
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 Fl,Fr are left and right eigenvectors, with legs orders (up,middle,down)
 """
-function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
+function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     #initialization
     Dh,Dv=size(T,1,3)
@@ -32,14 +32,7 @@ function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
     Ac=rand(elemtype,χ,χ,Dv)
     C=rand(elemtype,χ,χ)
 
-    errFE=1e-8
-    err_Fl=errFE
-    err_Fr=errFE
-    err_Ac=errFE
-    err_C=errFE
-    err_Al=errFE
-    err_Ar=errFE
-    err_mean=errFE
+    errFE=err_Fl=err_Fr=err_Ac=err_C=err_Al=err_Ar=err_mean=e0
 
     for iter=1:maxiter
         leftlm=LinearMap([Fl,Al,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]],1,elemtype=elemtype)
@@ -106,7 +99,6 @@ function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
 end
 
 """
-function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,elemtype=Complex128)
 Obtain fixed point for an mpo with 2 site per unit cell.
 
 For the following case
@@ -132,7 +124,7 @@ FBl  TB  TA         TA  TB  FBr
 
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
 """
-function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,elemtype=Complex128)
+function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     #initialization
     Dh,Dv=size(TA,1,3)
@@ -153,19 +145,7 @@ function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,e
     C1=rand(elemtype,χ,χ)
     C2=rand(elemtype,χ,χ)
 
-    err_FAl=ep
-    err_FAr=ep
-    err_FBl=ep
-    err_FBr=ep
-    err_Ac=ep
-    err_Bc=ep
-    err_C1=ep
-    err_C2=ep
-    err_Al=ep
-    err_Ar=ep
-    err_Bl=ep
-    err_Br=ep
-    err_mean=ep
+    err_FAl=err_FAr=err_FBl=err_FBr=err_Ac=err_Bc=err_C1=err_C2=err_Al=err_Ar=err_Bl=err_Br=err_mean=e0
 
     for iter=1:maxiter
         leftlm=LinearMap([FAl,Al,TA,conj(Al),Bl,TB,conj(Bl)],[[1,2,3],[1,6,4],[2,7,4,5],[3,8,5],[6,-1,9],[7,-2,9,10],[8,-3,10]],1,elemtype=elemtype)
@@ -249,7 +229,6 @@ end
 
 
 """
-function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
 Obtain fixed point for a double layer mpo, where the mpo is obtained by contracting one row of single layer square PEPS tensors. Here translational invriant is assumed
 
 For the following case
@@ -264,7 +243,7 @@ ep indicates the precision (how far from the optimal state) that one wants obtai
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 """
-function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
+function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
     #initialization
     d,Dh,Dv=size(T,1,2,4)
@@ -280,14 +259,7 @@ function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128
     Ac=rand(elemtype,χ,χ,Dv,Dv)
     C=rand(elemtype,χ,χ)
 
-    errFE=1e-8
-    err_Fl=errFE
-    err_Fr=errFE
-    err_Ac=errFE
-    err_C=errFE
-    err_Al=errFE
-    err_Ar=errFE
-    err_mean=errFE
+    errFE=err_Fl=err_Fr=err_Ac=err_C=err_Al=err_Ar=err_mean=e0
 
     for iter=1:maxiter
         leftlm=LinearMap([Fl,Al,T,Tc,conj(Al)],[[1,2,3,4],[1,-1,5,6],[7,2,-2,5,8],[7,3,-3,6,9],[4,-4,8,9]],1,elemtype=elemtype)
@@ -358,7 +330,6 @@ end
 
 
 """
-function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,elemtype=Complex128)
 Obtain fixed point for a double layer mpo with double unit cell, where the mpo is obtained by contracting one row of single layer square PEPS tensors. Here translational invriant is assumed
 
 For the following case
@@ -373,7 +344,7 @@ other definition is similiar as in square_duc_mpofp
 
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
 """
-function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,elemtype=Complex128)
+function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
     #initialization
     d,Dh,Dv=size(TA,1,2,4)
     @printf("d=%d, Dh=%d, Dv=%d \n",d,Dh,Dv)
@@ -393,19 +364,7 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50
     C1=rand(elemtype,χ,χ)
     C2=rand(elemtype,χ,χ)
 
-    err_FAl=ep
-    err_FAr=ep
-    err_FBl=ep
-    err_FBr=ep
-    err_Ac=ep
-    err_Bc=ep
-    err_C1=ep
-    err_C2=ep
-    err_Al=ep
-    err_Ar=ep
-    err_Bl=ep
-    err_Br=ep
-    err_mean=ep
+    err_FAl=err_FAr=err_FBl=err_FBr=err_Ac=err_Bc=err_C1=err_C2=err_Al=err_Ar=err_Bl=err_Br=err_mean=e0
 
     for iter=1:maxiter
         leftlm=LinearMap([FAl,Al,TA,conj(TA),conj(Al),Bl,TB,conj(TB),conj(Bl)],[[1,2,3,4],[1,10,5,6],[7,2,11,5,8],[7,3,12,6,9],[4,13,8,9],[10,-1,14,15],[16,11,-2,14,17],[16,12,-3,15,18],[13,-4,17,18]],1,elemtype=elemtype)
