@@ -19,6 +19,7 @@ Fl,Fr are left and right eigenvectors, with legs orders (up,middle,down)
 """
 function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
+    @printf("χ=%d, maxiter=%d, ep=%e, e0=%e \n",χ,maxiter,ep,e0)
     #initialization
     Dh,Dv=size(T,1,3)
     @printf("Dh=%d, Dv=%d \n",Dh,Dv)
@@ -106,6 +107,7 @@ For the following case
    |    |    |    |
 ---T----T----T----T----
    |    |    |    |
+
 For tensor T, legs order as (left,right,up,down)
 legs orders for Al,Ar,Ac and Bl,Br,Bc are (left,right,down)
 ep indicates the precision (how far from the optimal state) that one wants obtain
@@ -126,6 +128,7 @@ returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
 """
 function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
+    @printf("χ=%d, maxiter=%d, ep=%e, e0=%e \n",χ,maxiter,ep,e0)
     #initialization
     Dh,Dv=size(TA,1,3)
     @printf("Dh=%d, Dv=%d \n",Dh,Dv)
@@ -245,6 +248,7 @@ Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_br
 """
 function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
+    @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
     d,Dh,Dv=size(T,1,2,4)
     @printf("d=%d, Dh=%d, Dv=%d \n",d,Dh,Dv)
@@ -345,6 +349,8 @@ other definition is similiar as in square_duc_mpofp
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,free_energy,err_mean)
 """
 function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+
+    @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
     d,Dh,Dv=size(TA,1,2,4)
     @printf("d=%d, Dh=%d, Dv=%d \n",d,Dh,Dv)
