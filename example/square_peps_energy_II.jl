@@ -24,11 +24,11 @@ using JTensor
      HS[:,:,3]=0.5*[1 0; 0 -1]
 
      energy=0
-     Aerr_mean=Berr_mean=0.1
+     Aerr_mean=Berr_mean=1
 
      for iter=1:maxiter
          Al,Ar,Ac,CA,FlA,FrA,feA,Aerr_mean=square_dlmpofp(permutedims(T,[1,2,4,3,5]),χ,Al,Ar,Ac,CA,FlA,FrA,maxiter=1,e0=Aerr_mean)
-         Bl,Br,Bc,CB,Berr_mean=square_dlmpofp(permutedims(T,[1,4,2,5,3]),χ,Bl,Br,Bc,CB,FlB,FrB,maxiter=1,e0=Berr_mean)[[1,2,3,4,end]]
+         Bl,Br,Bc,CB,FlB,FrB,feB,Berr_mean=square_dlmpofp(permutedims(T,[1,4,2,5,3]),χ,Bl,Br,Bc,CB,FlB,FrB,maxiter=1,e0=Berr_mean)
 
          leftlm=LinearMap([L,Al,T,conj(T),Br],[[1,2,3,4],[1,-1,5,6],[7,2,5,-2,8],[7,3,6,-3,9],[-4,4,8,9]],1)
          rightlm=LinearMap([R,Ar,T,conj(T),Bl],[[1,2,3,4],[-1,1,5,6],[7,-2,5,2,8],[7,-3,6,3,9],[4,-4,8,9]],1)
@@ -82,11 +82,11 @@ we print energy for every iteration
      HS[:,:,3]=0.5*[1 0; 0 -1]
 
      energy=0
-     uerr_mean=derr_mean=0.1
+     uerr_mean=derr_mean=1
 
      for iter=1:maxiter
          Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u,FAlu,FAru,FBlu,FBru,ufe,uerr_mean=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,Alu,Aru,Blu,Bru,Acu,Bcu,C1u,C2u,FAlu,FAru,FBlu,FBru,e0=uerr_mean,maxiter=1)
-         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d,FAld,FArd,FBld,FBrd,dfe,derr_mean=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,C1d,C2d,C1d,C2d,FAld,FArd,FBld,FBrd,e0=derr_mean,maxiter=1)
+         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d,FAld,FArd,FBld,FBrd,dfe,derr_mean=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,Acd,Bcd,C1d,C2d,FAld,FArd,FBld,FBrd,e0=derr_mean,maxiter=1)
 
          #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
          #println("symmetry!")
@@ -110,12 +110,12 @@ we print energy for every iteration
          #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
 
          leftlm=LinearMap([LA,Alu,TA,conj(TA),Ard,Blu,TB,conj(TB),Brd],[[1,2,3,4],[1,10,5,6],[7,2,5,11,8],[7,3,6,12,9],[13,4,8,9],[10,-1,14,15],[16,11,14,-2,17],[16,12,15,-3,18],[-4,13,17,18]],1)
-         λlA,LA=eigs(leftlm,nev=1,v0=LA[:],tol=max(err/100,Aerr_mean/100,Berr_mean/100))
+         λlA,LA=eigs(leftlm,nev=1,v0=LA[:],tol=max(err/100,uerr_mean/100,derr_mean/100))
          λlA=λlA[1]
          LA=reshape(LA,χ,D,D,χ)
 
          rightlm=LinearMap([RB,Bru,TB,conj(TB),Bld,Aru,TA,conj(TA),Ald],[[1,2,3,4],[10,1,5,6],[7,11,5,2,8],[7,12,6,3,9],[4,13,8,9],[-1,10,14,15],[16,-2,14,11,17],[16,-3,15,12,18],[13,-4,17,18]],1)
-         λrB,RB=eigs(rightlm,nev=1,v0=RB[:],tol=max(err/100,Aerr_mean/100,Berr_mean/100))
+         λrB,RB=eigs(rightlm,nev=1,v0=RB[:],tol=max(err/100,uerr_mean/100,derr_mean/100))
          λrB=λrB[1]
          RB=reshape(RB,χ,D,D,χ)
 
