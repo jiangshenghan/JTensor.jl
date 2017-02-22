@@ -42,7 +42,8 @@ using JTensor
          wf_norm=(λl*λr*jcontract([L,CA,CB,R],[[1,2,3,4],[1,5],[6,4],[5,2,3,6]]))
          energy=jcontract([EL,ER],[[1,2,3,4,5],[1,2,3,4,5]])/wf_norm
 
-         @printf("iter = %d \n λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %f + i %e \n \n",iter,real(λl),imag(λl),real(λr),imag(λr),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+         @printf("iter = %d \n λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %.16f + i %e \n \n",iter,real(λl),imag(λl),real(λr),imag(λr),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+         flush(STDOUT)
      end
 
      return energy
@@ -80,28 +81,28 @@ we print energy for every iteration
 
      for iter=1:maxiter
          Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,Alu,Aru,Blu,Bru,ep=err,maxiter=1)
-         #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,ep=err,maxiter=1)
+         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,ep=err,maxiter=1)
 
          #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
-         println("symmetry!")
-         println()
-         #D=3 case
-         if D==3
-             W=[0 1 0; -1 0 0; 0 0 1]
-             JW=[0 -1 0; 1 0 0; 0 0 1]
-         end
-         #D=6(0⊕1/2⊕1) case
-         if D==6
-             W=zeros(6,6)
-             W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
-             W[5,2]=W[4,4]=-1
-             J=diagm([1,-1,1,1,-1,1])
-             JW=J*W
-         end
+         #println("symmetry!")
+         #println()
+         ##D=3 case
+         #if D==3
+         #    W=[0 1 0; -1 0 0; 0 0 1]
+         #    JW=[0 -1 0; 1 0 0; 0 0 1]
+         #end
+         ##D=6(0⊕1/2⊕1) case
+         #if D==6
+         #    W=zeros(6,6)
+         #    W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
+         #    W[5,2]=W[4,4]=-1
+         #    J=diagm([1,-1,1,1,-1,1])
+         #    JW=J*W
+         #end
          #for zero flux rvb
          #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
          #for pi flux rvb
-         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
+         #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
 
          leftlm=LinearMap([LA,Alu,TA,conj(TA),Ard,Blu,TB,conj(TB),Brd],[[1,2,3,4],[1,10,5,6],[7,2,5,11,8],[7,3,6,12,9],[13,4,8,9],[10,-1,14,15],[16,11,14,-2,17],[16,12,15,-3,18],[-4,13,17,18]],1)
          λlA,LA=eigs(leftlm,nev=1,v0=LA[:],tol=err)
@@ -122,7 +123,8 @@ we print energy for every iteration
          #ER2=jcontract([RB,Bru,TB,HS,conj(TB),Bld],[[1,2,3,4],[-1,1,5,6],[7,-2,5,2,9],[7,8,-3],[8,-4,6,3,10],[4,-5,9,10]])
          #energy2=jcontract([EL2,ER2],[[1,2,3,4,5],[1,2,3,4,5]])/wf_norm
 
-         @printf("iter = %d, λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %f + i %e \n \n",iter,real(λlA),imag(λlA),real(λrB),imag(λrB),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+         @printf(" iter = %d, \n λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %.16f + i %e \n \n",iter,real(λlA),imag(λlA),real(λrB),imag(λrB),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+        flush(STDOUT)
      end
 
      return energy

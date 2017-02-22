@@ -83,6 +83,7 @@ function square_mpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128)
         free_energy=λAc/λC
 
         @printf("iteration %d \n free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n λAc/λC: %.16f + i %e  \n error in prediction \n errFE: %.16e \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_C: %.16e \n err_Al: %.16e \n err_Ar %.16e \n \n",iter,real(λl),imag(λl),real(λr),imag(λr),real(λAc/λC),imag(λAc/λC),errFE,err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar)
+        flush(STDOUT)
 
         if err_mean<ep break end
     end
@@ -236,6 +237,7 @@ function square_duc_mpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50,e
         free_energy=mean([λAl,λAr])
 
         @printf("iteration %d \n free energy \n λAl: %.16f + i %e \n λAr: %.16f + i %e  \n λAc: %.16f + i %e \n λBc: %.16f + i %e \n λC1: %.16f + i %e \n λC2: %.16f + i %e \n (λAc*λBc)/(λC1*λC2): %.16f + i %e \n error in prediction \n err_FAl: %.16e \n err_FAr: %.16e \n err_FBl: %.16e \n err_FBr: %.16e \n err_Ac: %.16e \n err_Bc: %.16e \n err_C1: %.16e \n err_C2: %.16e \n err_Al: %.16e \n err_Ar: %.16e \n err_Bl: %.16e \n err_Br: %.16e \n \n", iter,real(λAl),imag(λAl),real(λAr),imag(λAr),real(λAc),imag(λAc),real(λBc),imag(λBc),real(λC1),imag(λC1),real(λC2),imag(λC2),real((λAc*λBc)/(λC1*λC2)),imag((λAc*λBc)/(λC1*λC2)),err_FAl,err_FAr,err_FBl,err_FBr,err_Ac,err_Bc,err_C1,err_C2,err_Al,err_Ar,err_Bl,err_Br)
+        flush(STDOUT)
 
         if err_mean<ep break end
     end
@@ -332,6 +334,7 @@ function square_dlmpofp(T,χ,Al=[],Ar=[];ep=1e-12,maxiter=50,elemtype=Complex128
         free_energy=λAc/λC
 
         @printf("iteration %d \n free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n λAc/λC: %.16f + i %e  \n error in prediction \n errFE: %.16e \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_C: %.16e \n err_Al: %.16e \n err_Ar %.16e \n \n",iter,real(λl),imag(λl),real(λr),imag(λr),real(λAc/λC),imag(λAc/λC),errFE,err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar)
+        flush(STDOUT)
 
         if err_mean<ep break end
     end
@@ -479,6 +482,7 @@ function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[];ep=1e-12,maxiter=50
         free_energy=mean([λAl,λAr])
 
         @printf("iteration %d \n free energy \n λAl: %.16f + i %e \n λAr: %.16f + i %e  \n λAc: %.16f + i %e \n λBc: %.16f + i %e \n λC1: %.16f + i %e \n λC2: %.16f + i %e \n (λAc*λBc)/(λC1*λC2): %.16f + i %e \n error in prediction \n err_FAl: %.16e \n err_FAr: %.16e \n err_FBl: %.16e \n err_FBr: %.16e \n err_Ac: %.16e \n err_Bc: %.16e \n err_C1: %.16e \n err_C2: %.16e \n err_Al: %.16e \n err_Ar: %.16e \n err_Bl: %.16e \n err_Br: %.16e \n \n", iter,real(λAl),imag(λAl),real(λAr),imag(λAr),real(λAc),imag(λAc),real(λBc),imag(λBc),real(λC1),imag(λC1),real(λC2),imag(λC2),real((λAc*λBc)/(λC1*λC2)),imag((λAc*λBc)/(λC1*λC2)),err_FAl,err_FAr,err_FBl,err_FBr,err_Ac,err_Bc,err_C1,err_C2,err_Al,err_Ar,err_Bl,err_Br)
+        flush(STDOUT)
 
         if err_mean<ep break end
     end

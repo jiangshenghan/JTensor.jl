@@ -33,7 +33,8 @@ using JTensor
      wf_norm=(λl*λr*jcontract([L,CA,CB,R],[[1,2,3,4],[1,5],[6,4],[5,2,3,6]]))
      energy=jcontract([EL,ER],[[1,2,3,4,5],[1,2,3,4,5]])/wf_norm
 
-     @printf("λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %f + i %e \n",real(λl),imag(λl),real(λr),imag(λr),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+     @printf("λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %.16f + i %e \n",real(λl),imag(λl),real(λr),imag(λr),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+     flush(STDOUT)
 
      return energy
  end
@@ -92,7 +93,8 @@ Ald,Bld,... are fixed point MPS from lower half plane
      #ER2=jcontract([RB,Bru,TB,HS,conj(TB),Bld],[[1,2,3,4],[-1,1,5,6],[7,-2,5,2,9],[7,8,-3],[8,-4,6,3,10],[4,-5,9,10]])
      #energy2=jcontract([EL2,ER2],[[1,2,3,4,5],[1,2,3,4,5]])/wf_norm
 
-     @printf("λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %f + i %e \n \n",real(λlA),imag(λlA),real(λrB),imag(λrB),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+     @printf("λl = %f + i %f \n λr = %f + i %f \n wf_norm: %f + i %f \n energy = %.16f + i %e \n \n",real(λlA),imag(λlA),real(λrB),imag(λrB),real(wf_norm),imag(wf_norm),real(energy),imag(energy))
+     flush(STDOUT)
 
      return energy
  end
