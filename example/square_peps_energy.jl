@@ -57,14 +57,14 @@ Ald,Bld,... are fixed point MPS from lower half plane
      d,D=size(TA,1,2)
 
      Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)
-     #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
+     Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
 
      #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
-     println("symmetry!")
-     W=[0 1 0; -1 0 0; 0 0 1]
-     JW=[0 -1 0; 1 0 0; 0 0 1]
+     #println("symmetry!")
+     #W=[0 1 0; -1 0 0; 0 0 1]
+     #JW=[0 -1 0; 1 0 0; 0 0 1]
      #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,JW,JW],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
-     Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
+     #Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=jcontract([Alu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Aru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Acu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Blu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bru,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),jcontract([Bcu,W,W],[[-1,-2,1,2],[1,-3],[2,-4]]),C1u,C2u
 
      LA=rand(Complex128,χ,D,D,χ)
      RB=rand(Complex128,χ,D,D,χ)

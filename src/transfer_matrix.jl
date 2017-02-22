@@ -243,9 +243,9 @@ For the following case
 Here, TT lable double layer tensor. For single layer tensor T, legs order as (phys,left,right,up,down)
 legs orders for Al,Ar are (left,right,down_ket,down_bra)
 ep indicates the precision (how far from the optimal state) that one wants obtain
+Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
-Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 """
 function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 

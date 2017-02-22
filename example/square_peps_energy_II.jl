@@ -13,6 +13,7 @@ using JTensor
      Ar=permutedims(Al,[2,1,3,4])
      Bl=Al
      Br=Ar
+     Ac=CA=FlA=FrA=Bc=CB=FlB=FrB=[]
 
      L=rand(Complex128,χ,D,D,χ)
      R=rand(Complex128,χ,D,D,χ)
@@ -26,8 +27,8 @@ using JTensor
      Aerr_mean=Berr_mean=0.1
 
      for iter=1:maxiter
-         Al,Ar,Ac,CA,Aerr_mean=square_dlmpofp(permutedims(T,[1,2,4,3,5]),χ,Al,Ar,maxiter=1,e0=Aerr_mean)[[1,2,3,4,end]]
-         Bl,Br,Bc,CB,Berr_mean=square_dlmpofp(permutedims(T,[1,4,2,5,3]),χ,Bl,Br,maxiter=1,e0=Berr_mean)[[1,2,3,4,end]]
+         Al,Ar,Ac,CA,FlA,FrA,feA,Aerr_mean=square_dlmpofp(permutedims(T,[1,2,4,3,5]),χ,Al,Ar,Ac,CA,FlA,FrA,maxiter=1,e0=Aerr_mean)
+         Bl,Br,Bc,CB,Berr_mean=square_dlmpofp(permutedims(T,[1,4,2,5,3]),χ,Bl,Br,Bc,CB,FlB,FrB,maxiter=1,e0=Berr_mean)[[1,2,3,4,end]]
 
          leftlm=LinearMap([L,Al,T,conj(T),Br],[[1,2,3,4],[1,-1,5,6],[7,2,5,-2,8],[7,3,6,-3,9],[-4,4,8,9]],1)
          rightlm=LinearMap([R,Ar,T,conj(T),Bl],[[1,2,3,4],[-1,1,5,6],[7,-2,5,2,8],[7,-3,6,3,9],[4,-4,8,9]],1)
@@ -69,6 +70,8 @@ we print energy for every iteration
 
      Alu=Blu=Ald=Bld=permutedims(reshape(qr(rand(Complex128,χ*D^2,χ))[1],χ,D,D,χ),[1,4,2,3])
      Aru=Bru=Ard=Brd=permutedims(Alu,[2,1,3,4])
+     Acu=Bcu=C1u=C2u=FAlu=FAru=FBlu=FBru=[]
+     Acd=Bcd=C1d=C2d=FAld=FArd=FBld=FBrd=[]
 
      LA=rand(Complex128,χ,D,D,χ)
      RB=rand(Complex128,χ,D,D,χ)
@@ -82,8 +85,8 @@ we print energy for every iteration
      uerr_mean=derr_mean=0.1
 
      for iter=1:maxiter
-         Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u,ufe,uerr_mean=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,Alu,Aru,Blu,Bru,e0=uerr_mean,maxiter=1)
-         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d,dfe,derr_mean=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,e0=derr_mean,maxiter=1)
+         Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u,FAlu,FAru,FBlu,FBru,ufe,uerr_mean=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,Alu,Aru,Blu,Bru,Acu,Bcu,C1u,C2u,FAlu,FAru,FBlu,FBru,e0=uerr_mean,maxiter=1)
+         Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d,FAld,FArd,FBld,FBrd,dfe,derr_mean=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,Ald,Ard,Bld,Brd,C1d,C2d,C1d,C2d,FAld,FArd,FBld,FBrd,e0=derr_mean,maxiter=1)
 
          #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
          #println("symmetry!")
