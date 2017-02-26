@@ -24,7 +24,7 @@ function test_square_pi_rvb_transfer_mat(file_name,χ,d=2,D=6;maxiter=300)
     Tb=TT[:,2]
     Ta=reshape(Ta,d,D,D,D,D)
     Tb=reshape(Tb,d,D,D,D,D)
-    square_duc_dlmpofp(permutedims(Ta,[1,2,4,3,5]),permutedims(Tb,[1,2,4,3,5]),χ,maxiter=maxiter)
+    square_duc_dlmpofp(permutedims(Ta,[1,2,4,3,5]),permutedims(Tb,[1,2,4,3,5]),χ,maxiter=maxiter,e0=1)
 end
 
 function test_square_pi_rvb_energy(file_name,χ,d=2,D=6;maxiter=300)
@@ -37,12 +37,13 @@ function test_square_pi_rvb_energy(file_name,χ,d=2,D=6;maxiter=300)
 end
 
 
+#running command
 #julia square_peps_test.jl file_name χ
 file_name=ARGS[1]
 χ=parse(Int,ARGS[2])
 println(ARGS[1])
 @printf("χ=%d\n\n",χ)
 flush(STDOUT)
-test_square_zero_rvb_energy(file_name,χ)
-#test_square_pi_rvb_transfer_mat(file_name,χ)
+#test_square_zero_rvb_energy(file_name,χ)
+test_square_pi_rvb_transfer_mat(file_name,χ)
 #test_square_pi_rvb_energy(file_name,χ)

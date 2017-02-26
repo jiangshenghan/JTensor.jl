@@ -247,7 +247,7 @@ Fl,Fr are left and right eigenvectors, with legs orders (up,middle_ket,middle_br
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
 """
-function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=10)
+function square_dlmpofp(T,χ,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
@@ -354,7 +354,7 @@ other definition is similiar as in square_duc_mpofp
 
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean)
 """
-function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=10)
+function square_duc_dlmpofp(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
 
     @printf("χ=%d, ep=%e, e0=%e \n",χ,ep,e0)
     #initialization
