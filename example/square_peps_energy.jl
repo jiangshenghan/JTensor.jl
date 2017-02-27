@@ -8,8 +8,8 @@ using JTensor
  function square_peps_Heisenberg(T,χ;maxiter=20,err=1e-8)
      d,D=size(T,1,2)
 
-     Al,Ar,Ac,CA=square_dlmpofp(permutedims(T,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)
-     Bl,Br,Bc,CB=square_dlmpofp(permutedims(T,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
+     Al,Ar,Ac,CA=dl_one_vumps(permutedims(T,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)
+     Bl,Br,Bc,CB=dl_one_vumps(permutedims(T,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
 
      L=rand(Complex128,χ,D,D,χ)
      R=rand(Complex128,χ,D,D,χ)
@@ -56,8 +56,8 @@ Ald,Bld,... are fixed point MPS from lower half plane
  function square_peps_duc_Heisenberg(TA,TB,χ;maxiter=20,err=1e-6)
      d,D=size(TA,1,2)
 
-     Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u=square_duc_dlmpofp(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)
-     Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=square_duc_dlmpofp(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
+     Alu,Aru,Acu,Blu,Bru,Bcu,C1u,C2u=dl_two_vumps(permutedims(TA,[1,2,4,3,5]),permutedims(TB,[1,2,4,3,5]),χ,ep=err,maxiter=maxiter)
+     Ald,Ard,Acd,Bld,Brd,Bcd,C1d,C2d=dl_two_vumps(permutedims(TA,[1,4,2,5,3]),permutedims(TB,[1,4,2,5,3]),χ,ep=err,maxiter=maxiter)
 
      #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
      #println("symmetry!")
