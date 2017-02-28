@@ -13,7 +13,7 @@ ep indicates the precision (how far from the optimal state) that one wants obtai
 {Fl},{Fr} are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 sequential algorithm is implemented
 
-returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean)
+returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
 function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
@@ -34,7 +34,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
     free_energy=0.
 
-    errFE=err_Fl=err_Fr=err_Ac=err_CL=err_CR=err_Al=err_Ar=err_mean=e0
+    errFE=err_Fl=err_Fr=err_Ac=err_CL=err_CR=err_Al=err_Ar=err=e0
 
     for iter=1:maxiter
         err_max=0
@@ -61,7 +61,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
                 append!(left_legs_list,legs_list_il)
             end
             leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
-            leig_res=eigs(leftlm,nev=1,v0=Fl[ns][:],tol=max(ep/100,err_mean/100,1e-15))
+            leig_res=eigs(leftlm,nev=1,v0=Fl[ns][:],tol=max(ep/100,err/100,1e-15))
             λl,vl=leig_res
             λl=λl[1]
             err_Fl=1-abs(dot(vl[:],Fl[ns][:]))/(norm(vl[:])*norm(Fl[ns][:]))
@@ -88,7 +88,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
                 append!(right_legs_list,legs_list_ir)
             end
             rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
-            reig_res=eigs(rightlm,nev=1,v0=Fr[ns][:],tol=max(ep/100,err_mean/100,1e-15))
+            reig_res=eigs(rightlm,nev=1,v0=Fr[ns][:],tol=max(ep/100,err/100,1e-15))
             λr,vr=reig_res
             λr=λr[1]
             err_Fr=1-abs(dot(vr[:],Fr[ns][:]))/(norm(vr[:])*norm(Fr[ns][:]))
@@ -96,7 +96,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             #Fr[ns]=Fr[ns]/abs(jcontract([Fl[ns],Fr[ns]],[[1,2,3,4],[1,2,3,4]]))
 
             Aclm=LinearMap([Fl[ns],Ac[ns],T[ns],Tc[ns],Fr[ns]],[[1,2,3,-1],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[7,8,9,-2]],2,elemtype=elemtype)
-            Aceig_res=eigs(Aclm,nev=1,v0=Ac[ns][:],tol=max(ep/100,err_mean/100,1e-15))
+            Aceig_res=eigs(Aclm,nev=1,v0=Ac[ns][:],tol=max(ep/100,err/100,1e-15))
             λAc,vAc=Aceig_res
             λAc=λAc[1]
             err_Ac=1-abs(dot(vAc[:],Ac[ns][:]))/(norm(vAc[:])*norm(Ac[ns][:]))
@@ -104,14 +104,14 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
             nsl=(ns+N-2)%N+1
             CLlm=LinearMap([Fl[ns],C[nsl],Fr[nsl]],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-            CLeig_res=eigs(CLlm,nev=1,v0=C[nsl][:],tol=max(ep/100,err_mean/100,1e-15))
+            CLeig_res=eigs(CLlm,nev=1,v0=C[nsl][:],tol=max(ep/100,err/100,1e-15))
             λCL,vCL=CLeig_res
             λCL=λCL[1]
             err_CL=1-abs(dot(vCL[:],C[nsl][:]))/(norm(vCL[:])*norm(C[nsl][:]))
             C[nsl]=reshape(vCL[:],chi,chi)
 
             CRlm=LinearMap([Fl[ns%N+1],C[ns],Fr[ns]],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-            CReig_res=eigs(CRlm,nev=1,v0=C[ns][:],tol=max(ep/100,err_mean/100,1e-15))
+            CReig_res=eigs(CRlm,nev=1,v0=C[ns][:],tol=max(ep/100,err/100,1e-15))
             λCR,vCR=CReig_res
             λCR=λCR[1]
             err_CR=1-abs(dot(vCR[:],C[ns][:]))/(norm(vCR[:])*norm(C[ns][:]))
@@ -140,10 +140,10 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             @printf("free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n error in prediction \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_CL: %.16e \n err_CR: %.16e \n err_Al: %.16e \n err_Ar %.16e \n err_max %.16e \n \n",real(λl),imag(λl),real(λr),imag(λr),err_Fl,err_Fr,err_Ac,err_CL,err_CR,err_Al,err_Ar,err_max)
             flush(STDOUT)
         end
-        err_mean=err_max
+        err=err_max
 
-        if err_mean<ep break end
+        if err<ep break end
     end
 
-    return Al,Ar,Ac,C,Fl,Fr,free_energy,err_mean
+    return Al,Ar,Ac,C,Fl,Fr,free_energy,err
 end
