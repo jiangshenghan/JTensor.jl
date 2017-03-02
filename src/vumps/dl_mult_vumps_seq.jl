@@ -22,7 +22,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
     #initialization
     N=size(T,1)
     d,Dh,Dv=size(T[1],1,2,4)
-    @printf("N=%d,d=%d, Dh=%d, Dv=%d \n",N,d,Dh,Dv)
+    @printf("N=%d, d=%d, Dh=%d, Dv=%d \n",N,d,Dh,Dv)
 
     Tc=conj(T)
     if Al==[] Al=[permutedims(reshape(qr(rand(elemtype,chi*Dv^2,chi))[1],chi,Dv,Dv,chi),[1,4,2,3]) for i=1:N] end
