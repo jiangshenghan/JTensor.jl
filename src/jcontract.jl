@@ -10,6 +10,8 @@ the output tensor is sorted according to negative legs (-1,-2,-3)
 """
 function jcontract(tensor_list,legs_list)
 
+    #TODO:get trace of a single tensor
+
     #initialization
     result_tensor=[]
     result_legs=[]

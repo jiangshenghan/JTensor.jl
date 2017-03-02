@@ -15,7 +15,7 @@ sequential algorithm is implemented
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
-function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=40)
 
     @printf("chi=%d, ep=%e, e0=%e \n",chi,ep,e0)
 
@@ -61,7 +61,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
                 append!(left_legs_list,legs_list_il)
             end
             leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
-            leig_res=eigs(leftlm,nev=1,v0=Fl[ns][:],tol=max(ep/100,err/100,1e-15))
+            leig_res=eigs(leftlm,nev=1,v0=Fl[ns][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λl,vl=leig_res
             λl=λl[1]
             err_Fl=1-abs(dot(vl[:],Fl[ns][:]))/(norm(vl[:])*norm(Fl[ns][:]))
@@ -88,7 +88,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
                 append!(right_legs_list,legs_list_ir)
             end
             rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
-            reig_res=eigs(rightlm,nev=1,v0=Fr[ns][:],tol=max(ep/100,err/100,1e-15))
+            reig_res=eigs(rightlm,nev=1,v0=Fr[ns][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λr,vr=reig_res
             λr=λr[1]
             err_Fr=1-abs(dot(vr[:],Fr[ns][:]))/(norm(vr[:])*norm(Fr[ns][:]))
@@ -96,7 +96,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             #Fr[ns]=Fr[ns]/abs(jcontract([Fl[ns],Fr[ns]],[[1,2,3,4],[1,2,3,4]]))
 
             Aclm=LinearMap([Fl[ns],Ac[ns],T[ns],Tc[ns],Fr[ns]],[[1,2,3,-1],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[7,8,9,-2]],2,elemtype=elemtype)
-            Aceig_res=eigs(Aclm,nev=1,v0=Ac[ns][:],tol=max(ep/100,err/100,1e-15))
+            Aceig_res=eigs(Aclm,nev=1,v0=Ac[ns][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λAc,vAc=Aceig_res
             λAc=λAc[1]
             err_Ac=1-abs(dot(vAc[:],Ac[ns][:]))/(norm(vAc[:])*norm(Ac[ns][:]))
@@ -104,14 +104,14 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
             nsl=(ns+N-2)%N+1
             CLlm=LinearMap([Fl[ns],C[nsl],Fr[nsl]],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-            CLeig_res=eigs(CLlm,nev=1,v0=C[nsl][:],tol=max(ep/100,err/100,1e-15))
+            CLeig_res=eigs(CLlm,nev=1,v0=C[nsl][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λCL,vCL=CLeig_res
             λCL=λCL[1]
             err_CL=1-abs(dot(vCL[:],C[nsl][:]))/(norm(vCL[:])*norm(C[nsl][:]))
             C[nsl]=reshape(vCL[:],chi,chi)
 
             CRlm=LinearMap([Fl[ns%N+1],C[ns],Fr[ns]],[[1,2,3,-1],[1,4],[4,2,3,-2]],2,elemtype=elemtype)
-            CReig_res=eigs(CRlm,nev=1,v0=C[ns][:],tol=max(ep/100,err/100,1e-15))
+            CReig_res=eigs(CRlm,nev=1,v0=C[ns][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λCR,vCR=CReig_res
             λCR=λCR[1]
             err_CR=1-abs(dot(vCR[:],C[ns][:]))/(norm(vCR[:])*norm(C[ns][:]))
