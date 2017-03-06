@@ -14,7 +14,7 @@ convention:
 Bl[i]=diagm(C[i-1])*B[i]
 Br[i]=B[i]*diagm(C[i])
 
-returns (B,C)
+returns (B,C,Fl,Fr)
 """
 function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
 
@@ -90,6 +90,9 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     R=reshape(R[:vectors]*diagm(sqrt(abs(R[:values]))),DA,Dh,DA*Dh)
     R=permutedims(R,[3,1,2])
 
+    Fl=reshape(Fl,DA,Dh,DA,Dh)
+    Fr=reshape(Fr,DA,Dh,DA,Dh)
+
     @printf("eig info: \n λl=%f+i%f \n λr=%f+i%f \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n",real(λl),imag(λl),real(λr),imag(λr),leig_res[4],leig_res[5],reig_res[4],reig_res[5])
 
     #truncate singular value
@@ -130,7 +133,7 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
         println("singular values:")
         println(C[1])
         println()
-        return B,C
+        return B,C,Fl,Fr
     end
     
     #get canonical form for mult sites
@@ -162,7 +165,8 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     end
 
     println()
+    flush(STDOUT)
 
-    return B,C
+    return B,C,Fl,Fr
 end
 

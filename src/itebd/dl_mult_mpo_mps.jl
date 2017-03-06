@@ -10,7 +10,7 @@ Apply MPO to MPS, and obtained the truncated MPS with canonical form
 Here, TT lable double layer tensor. For single layer tensors T, legs order as (phys,left,right,up,down)
 legs orders for A are (left,right,down_ket,down_bra)
 
-returns (Bl,Br,C)
+returns (B,C,Fl,Fr)
 """
 function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
 
@@ -90,10 +90,8 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     R=reshape(R[:vectors]*diagm(sqrt(abs(R[:values]))),DA,Dh,Dh,DA*Dh^2)
     R=permutedims(R,[4,1,2,3])
 
-    #cholfact does not work for singular matrix
-    #if (real(trace(Fr))<0) Fr=-Fr end
-    #R=cholfact(Fr)
-    #R=reshape(transpose(R[:L]),DA*Dh^2,DA,Dh,Dh)
+    Fl=reshape(Fl,DA,Dh,Dh,DA,Dh,Dh)
+    Fr=reshape(Fr,DA,Dh,Dh,DA,Dh,Dh)
 
     @printf("eig info: \n λl=%f+i%f \n λr=%f+i%f \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n",real(λl),imag(λl),real(λr),imag(λr),leig_res[4],leig_res[5],reig_res[4],reig_res[5])
 
@@ -135,7 +133,7 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
         println("singular values:")
         println(C[1])
         println()
-        return B,C
+        return B,C,Fl,Fr
     end
 
     #canonical forms for mult sites
@@ -170,6 +168,7 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     end
 
     println()
+    flush(STDOUT)
 
-    return B,C
+    return B,C,Fl,Fr
 end
