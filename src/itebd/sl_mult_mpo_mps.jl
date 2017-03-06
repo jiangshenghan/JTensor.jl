@@ -123,32 +123,34 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     B=[zeros(elemtype,chic,chic,Dv) for i=1:N]
     C=[S for i=1:N]
 
-    #TODO:debug the following
     #one site
     if (N==1)
         B[1]=jcontract([R1inv,A[1],T[1],LNinv],[[-1,1,2],[1,4,3],[2,5,3,-3],[-2,4,5]])
+        B[1]/=vecnorm(jcontract([diagm(C[1]),B[1]],[[-1,1],[1,-2,-3]]))/sqrt(chic) #normalization such that Bl,Br (almost) unitary
         println()
         return B,C
     end
     
     #get canonical for for mult sites
+    #gamma_tensor= --LN==AT==R1--
+    #                   /..\
     gamma_tensor=LN
     gamma_legs=[-1,1,2]
     for ig=1:N
-        jcontract([gamma_tensor,A[ig],T[ig]],[gamma_legs,[1,-ig-2,3],[2,-ig-3,3,-ig-1]])
+        gamma_tensor=jcontract([gamma_tensor,A[ig],T[ig]],[gamma_legs,[1,-ig-2,3],[2,-ig-3,3,-ig-1]])
         insert!(gamma_legs,ig+1,-ig-1)
     end
     gamma_tensor=jcontract([gamma_tensor,R1],[gamma_legs,[-N-2,1,2]])
 
     for ig=1:N-1
-        gamma_svd=svdfact(reshape(gamma_tensor,chic*Dv,length(gamma_tensor)/(chic*Dv)))
+        gamma_svd=svdfact(reshape(gamma_tensor,chic*Dv,div(length(gamma_tensor),chic*Dv)))
         P=reshape(gamma_svd[:U][:,1:chic],chic,Dv,chic)
-        B[ig]=jcontract([diagm(C[ig==1?N:ig-1].\1),P],[[-1,1],[1,-2,-3]])
+        B[ig]=jcontract([diagm(C[ig==1?N:ig-1].\1),P],[[-1,1],[1,-3,-2]])
         C[ig]=(gamma_svd[:S]/norm(gamma_svd[:S]))[1:chic]
         if ig<N-1
             gamma_tensor=diagm(C[ig])*gamma_svd[:Vt][1:chic,:]
         else
-            jcontract([reshape(gamma_svd[:Vt][1:chic,:],chic,Dv,chic),diagm(Sinv)],[[-1,1,-3],[1,-2]])
+            B[N]=jcontract([reshape(gamma_svd[:Vt][1:chic,:],chic,Dv,chic),diagm(Sinv)],[[-1,-3,1],[1,-2]])
         end
         @printf("singular values at %d: \n",ig)
         println(C[ig])
