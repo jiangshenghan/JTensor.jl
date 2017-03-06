@@ -142,9 +142,6 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     gamma_tensor=LN
     gamma_legs=[-1,1,2,3]
     for ig=1:N
-        println(ig)
-        println(gamma_legs)
-        println(size(gamma_tensor))
         gamma_tensor=jcontract([gamma_tensor,A[ig],T[ig],Tc[ig]],[gamma_legs,[1,-2*ig-2,4,5],[6,2,-2*ig-3,4,-2*ig],[6,3,-2*ig-4,5,-2*ig-1]])
         splice!(gamma_legs,2ig:2ig-1,[-2*ig,-2*ig-1])
     end
