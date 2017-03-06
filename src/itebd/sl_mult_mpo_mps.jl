@@ -127,11 +127,13 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     if (N==1)
         B[1]=jcontract([R1inv,A[1],T[1],LNinv],[[-1,1,2],[1,4,3],[2,5,3,-3],[-2,4,5]])
         B[1]/=vecnorm(jcontract([diagm(C[1]),B[1]],[[-1,1],[1,-2,-3]]))/sqrt(chic) #normalization such that Bl,Br (almost) unitary
+        println("singular values:")
+        println(C[1])
         println()
         return B,C
     end
     
-    #get canonical for for mult sites
+    #get canonical form for mult sites
     #gamma_tensor= --LN==AT==R1--
     #                   /..\
     gamma_tensor=LN
@@ -147,13 +149,16 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
         P=reshape(gamma_svd[:U][:,1:chic],chic,Dv,chic)
         B[ig]=jcontract([diagm(C[ig==1?N:ig-1].\1),P],[[-1,1],[1,-3,-2]])
         C[ig]=(gamma_svd[:S]/norm(gamma_svd[:S]))[1:chic]
+        @printf("singular values at %d: \n",ig)
+        println(C[ig])
+
         if ig<N-1
             gamma_tensor=diagm(C[ig])*gamma_svd[:Vt][1:chic,:]
         else
             B[N]=jcontract([reshape(gamma_svd[:Vt][1:chic,:],chic,Dv,chic),diagm(Sinv)],[[-1,-3,1],[1,-2]])
+            @printf("singular values at %d: \n",N)
+            println(C[N])
         end
-        @printf("singular values at %d: \n",ig)
-        println(C[ig])
     end
 
     println()

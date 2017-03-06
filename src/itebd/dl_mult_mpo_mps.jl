@@ -120,45 +120,56 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     println("Sinv:")
     println(Sinv)
 
-    L=jcontract([conj(U),L],[[1,-1],[1,-2,-3,-4]])
-    R=jcontract([conj(Vt),R],[[-1,1],[1,-2,-3,-4]])
-    Linv=jcontract([R,diagm(Sinv)],[[1,-2,-3,-4],[1,-1]])
-    Rinv=jcontract([diagm(Sinv),L],[[-1,1],[1,-2,-3,-4]])
-    C=[diagm(S) for i=1:N]
+    LN=jcontract([conj(U),L],[[1,-1],[1,-2,-3,-4]])
+    R1=jcontract([conj(Vt),R],[[-1,1],[1,-2,-3,-4]])
+    LNinv=jcontract([R1,diagm(Sinv)],[[1,-2,-3,-4],[1,-1]])
+    R1inv=jcontract([diagm(Sinv),LN],[[-1,1],[1,-2,-3,-4]])
 
-    #TODO:modify the following algorithm
-    #TODO: chic can be position dependent
-    #left (not strictly) canonical 
-    Bl=[zeros(elemtype,chic,chic,Dv,Dv) for il=1:N]
-    Ls=L
-    for il=1:N-1
-        LATT=jcontract([Ls,A[il],T[il],Tc[il]],[[-1,1,2,3],[1,-4,4,5],[6,2,-5,4,-2],[6,3,-6,5,-3]])
-        resil=svdfact(reshape(LATT,chic*Dv^2,DA*Dh^2))
-        Bl[il]=permutedims(reshape(resil[:U][:,1:chic],chic,Dv,Dv,chic),[1,4,2,3])
-        C[il]=diagm((resil[:S]/norm(resil[:S]))[1:chic])
-        Ls=C[il]*resil[:Vt][1:chic,:]
-        Ls=reshape(Ls,chic,DA,Dh,Dh)
+    B=[zeros(elemtype,chic,chic,Dv,Dv) for i=1:N]
+    C=[S for i=1:N]
+
+    #one site
+    if (N==1)
+        B[1]=jcontract([R1inv,A[1],T[1],Tc[1],LNinv],[[-1,1,2,3],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[-2,7,8,9]])
+        B[1]/=vecnorm(jcontract([diagm(C[1]),B[1]],[[-1,1],[1,-2,-3,-4]]))/sqrt(chic) #normalization such that Bl,Br (almost) unitary
+        println("singular values:")
+        println(C[1])
+        println()
+        return B,C
     end
-    Bl[N]=jcontract([Ls,A[N],T[N],Tc[N],Linv],[[-1,1,2,3],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[-2,7,8,9]])
-    Bl[N]/=norm(Bl[N])
 
-    #right canonical
-    Br=[zeros(elemtype,chic,chic,Dv,Dv) for il=1:N]
-    Rs=R
-    for ir=N:-1:2
-        RATT=jcontract([Rs,A[ir],T[ir],Tc[ir]],[[-1,1,2,3],[-4,1,4,5],[6,-5,2,4,-2],[6,-6,3,5,-3]])
-        resir=svdfact(reshape(RATT,chic*Dv^2,DA*Dh^2))
-        Br[ir]=permutedims(reshape(resir[:U][:,1:chic],chic,Dv,Dv,chic),[4,1,2,3])
-        Rs=diagm((resir[:S]/norm(resir[:S]))[1:chic])*resir[:Vt][1:chic,:]
-        Rs=reshape(Rs,chic,DA,Dh,Dh)
+    #canonical forms for mult sites
+    #gamma_tensor= --LN==ATT==R1--
+    #                   /...\
+    gamma_tensor=LN
+    gamma_legs=[-1,1,2,3]
+    for ig=1:N
+        println(ig)
+        println(gamma_legs)
+        println(size(gamma_tensor))
+        gamma_tensor=jcontract([gamma_tensor,A[ig],T[ig],Tc[ig]],[gamma_legs,[1,-2*ig-2,4,5],[6,2,-2*ig-3,4,-2*ig],[6,3,-2*ig-4,5,-2*ig-1]])
+        splice!(gamma_legs,2ig:2ig-1,[-2*ig,-2*ig-1])
     end
-    Br[1]=jcontract([Rinv,A[1],T[1],Tc[1],Rs],[[-1,2,3,4],[2,8,5,6],[7,3,9,5,-3],[7,4,10,6,-4],[-2,8,9,10]])
-    Br[1]/=norm(Br[1])
-
-    println("singular values:")
-    for i=1:N println(diag(C[i])) end
-    println()
+    gamma_tensor=jcontract([gamma_tensor,R1],[gamma_legs,[-2N-2,1,2,3]])
     
+    for ig=1:N-1
+        gamma_svd=svdfact(reshape(gamma_tensor,chic*Dv^2,div(length(gamma_tensor),chic*Dv^2)))
+        P=reshape(gamma_svd[:U][:,1:chic],chic,Dv,Dv,chic)
+        B[ig]=jcontract([diagm(C[ig==1?N:ig-1].\1),P],[[-1,1],[1,-3,-4,-2]])
+        C[ig]=(gamma_svd[:S]/norm(gamma_svd[:S]))[1:chic]
+        @printf("singular values at %d: \n",ig)
+        println(C[ig])
 
-    return Bl,Br,C
+        if ig<N-1
+            gamma_tensor=diagm(C[ig])*gamma_svd[:Vt][1:chic,:]
+        else
+            B[N]=jcontract([reshape(gamma_svd[:Vt][1:chic,:],chic,Dv,Dv,chic),diagm(Sinv)],[[-1,-3,-4,1],[1,-2]])
+            @printf("singular values at %d: \n",N)
+            println(C[N])
+        end
+    end
+
+    println()
+
+    return B,C
 end
