@@ -12,7 +12,7 @@ legs orders for A are (left,right,down_ket,down_bra)
 
 returns (Bl,Br,C)
 """
-function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=40)
+function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
 
     #initialization
     N=size(T,1)
@@ -46,13 +46,16 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=40)
         append!(left_legs_list,legs_list_il)
     end
     leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
-    leigs_res=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep,1e-15),ncv=ncv)
-    λl,Fl=leigs_res[1:2]
+    leig_res=eigs(leftlm,nev=1,v0=Fl[:],tol=max(ep,1e-15),ncv=ncv)
+    λl,Fl=leig_res[1:2]
     λl=λl[1]
     Fl=reshape(Fl,DA*Dh^2,DA*Dh^2)
     Fl=1/2*(Fl+Fl')
-    L=cholfact(Fl)
-    L=reshape(transpose(L[:L]),DA*Dh^2,DA,Dh,Dh)
+    L=eigfact(Fl)
+    println("left eigs:")
+    println(L[:values])
+    L=reshape(L[:vectors]*diagm(sqrt(abs(L[:values]))),DA,Dh,Dh,DA*Dh^2)
+    L=permutedims(L,[4,1,2,3])
 
     #right fixed point
     right_tensor_list=[]
@@ -76,15 +79,23 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=40)
         append!(right_legs_list,legs_list_ir)
     end
     rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
-    reigs_res=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep,1e-15),ncv=ncv)
-    λr,Fr=reigs_res[1:2]
+    reig_res=eigs(rightlm,nev=1,v0=Fr[:],tol=max(ep,1e-15),ncv=ncv)
+    λr,Fr=reig_res[1:2]
     λr=λr[1]
     Fr=reshape(Fr,DA*Dh^2,Dh^2*DA)
-    Fr=1/2*(Fr+ctranspose(Fr))
-    R=cholfact(Fr)
-    R=reshape(transpose(R[:L]),DA*Dh^2,DA,Dh,Dh)
+    Fr=1/2*(Fr+Fr')
+    R=eigfact(Fr)
+    println("right eigs:")
+    println(R[:values])
+    R=reshape(R[:vectors]*diagm(sqrt(abs(R[:values]))),DA,Dh,Dh,DA*Dh^2)
+    R=permutedims(R,[4,1,2,3])
 
-    @printf("eig iter info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n",leig_res[4],leig_res[5],reig_res[4],reig_res[5])
+    #cholfact does not work for singular matrix
+    #if (real(trace(Fr))<0) Fr=-Fr end
+    #R=cholfact(Fr)
+    #R=reshape(transpose(R[:L]),DA*Dh^2,DA,Dh,Dh)
+
+    @printf("eig info: \n λl=%f+i%f \n λr=%f+i%f \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n",real(λl),imag(λl),real(λr),imag(λr),leig_res[4],leig_res[5],reig_res[4],reig_res[5])
 
     #truncate singular value
     svdres=svdfact(jcontract([L,R],[[-1,1,2,3],[-2,1,2,3]]))
@@ -96,43 +107,57 @@ function dl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=40)
         else break
         end
     end
+    chic=min(chic,DA*Dh^2)
     U=U[:,1:chic]
+    S=S/norm(S)
     S=S[1:chic]
     Vt=Vt[1:chic,:]
     Sinv=S.\1
 
+    @printf("chic=%d\n",chic)
+    println("S:")
+    println(S)
+    println("Sinv:")
+    println(Sinv)
+
     L=jcontract([conj(U),L],[[1,-1],[1,-2,-3,-4]])
     R=jcontract([conj(Vt),R],[[-1,1],[1,-2,-3,-4]])
+    Linv=jcontract([R,diagm(Sinv)],[[1,-2,-3,-4],[1,-1]])
+    Rinv=jcontract([diagm(Sinv),L],[[-1,1],[1,-2,-3,-4]])
     C=[diagm(S) for i=1:N]
 
+    #TODO:modify the following algorithm
     #TODO: chic can be position dependent
     #left (not strictly) canonical 
-    copy!(Bl,A)
+    Bl=[zeros(elemtype,chic,chic,Dv,Dv) for il=1:N]
     Ls=L
     for il=1:N-1
         LATT=jcontract([Ls,A[il],T[il],Tc[il]],[[-1,1,2,3],[1,-4,4,5],[6,2,-5,4,-2],[6,3,-6,5,-3]])
         resil=svdfact(reshape(LATT,chic*Dv^2,DA*Dh^2))
         Bl[il]=permutedims(reshape(resil[:U][:,1:chic],chic,Dv,Dv,chic),[1,4,2,3])
-        C[il]=diagm(resil[:S][1:chic])
+        C[il]=diagm((resil[:S]/norm(resil[:S]))[1:chic])
         Ls=C[il]*resil[:Vt][1:chic,:]
         Ls=reshape(Ls,chic,DA,Dh,Dh)
     end
-    Bl[N]=jcontract([Ls,A[N],T[N],Tc[N],R,diagm(Sinv)],[[-1,1,2,3],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[10,7,8,9],[10,-2]])
+    Bl[N]=jcontract([Ls,A[N],T[N],Tc[N],Linv],[[-1,1,2,3],[1,7,4,5],[6,2,8,4,-3],[6,3,9,5,-4],[-2,7,8,9]])
+    Bl[N]/=norm(Bl[N])
 
     #right canonical
-    copy!(Br,A)
+    Br=[zeros(elemtype,chic,chic,Dv,Dv) for il=1:N]
     Rs=R
     for ir=N:-1:2
         RATT=jcontract([Rs,A[ir],T[ir],Tc[ir]],[[-1,1,2,3],[-4,1,4,5],[6,-5,2,4,-2],[6,-6,3,5,-3]])
         resir=svdfact(reshape(RATT,chic*Dv^2,DA*Dh^2))
         Br[ir]=permutedims(reshape(resir[:U][:,1:chic],chic,Dv,Dv,chic),[4,1,2,3])
-        Rs=diagm(resir[:S][1:chic])*resir[:Vt][1:chic,:]
+        Rs=diagm((resir[:S]/norm(resir[:S]))[1:chic])*resir[:Vt][1:chic,:]
         Rs=reshape(Rs,chic,DA,Dh,Dh)
     end
-    Br[1]=jcontract([diagm(Sinv),L,A[1],T[1],Tc[1],Rs],[[-1,1],[1,2,3,4],[2,8,5,6],[7,3,9,5,-3],[7,4,10,6,-4],[-2,8,9,10]])
+    Br[1]=jcontract([Rinv,A[1],T[1],Tc[1],Rs],[[-1,2,3,4],[2,8,5,6],[7,3,9,5,-3],[7,4,10,6,-4],[-2,8,9,10]])
+    Br[1]/=norm(Br[1])
 
     println("singular values:")
     for i=1:N println(diag(C[i])) end
+    println()
     
 
     return Bl,Br,C

@@ -13,6 +13,10 @@ ep indicates the precision (how far from the optimal state) that one wants obtai
 {Fl},{Fr} are left and right eigenvectors, with legs orders (up,middle_ket,middle_bra,down)
 sequential algorithm is implemented
 
+convention:
+--Al[i]--C[i]--Ar[i+1]--  = --Ac[i]----Ar[i+1]-- = --Al[i]----Ac[i+1]--
+  ||           ||             ||       ||            ||       ||
+
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
 function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=40)

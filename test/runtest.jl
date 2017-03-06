@@ -55,7 +55,7 @@ eigval1=eigs(lm;nev=min(5,n))[1]
 eigval2=eigs(b.';nev=min(5,n))[1]
 @test norm(eigval1-eigval2)/norm(eigval1)<1e-12
 
-#test transfer_matrix.jl
+#test vumps algorithm
 #1. square Ising model
 kIsing(β)=1/(sinh(2*β)^2)
 ZIsing(β)=exp(1/2pi*quadgk(x->log(cosh(2*β)*cosh(2*β)+1/kIsing(β)*sqrt(1+kIsing(β)^2-2*kIsing(β)*cos(2*x))),0,pi)[1]+log(2)/2)
@@ -69,3 +69,5 @@ r2=ZIsing(β)
 r3=sl_two_vumps(TIsing(β),TIsing(β),20)[end-1]
 @test abs(r1-r2)/abs(r1)<1e-5
 @test abs(r1-sqrt(r3))/abs(r1)<1e-5
+
+#test itebd algorithm
