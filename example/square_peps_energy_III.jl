@@ -14,7 +14,7 @@ Ald are fixed point MPS from lower half plane
 ---Ard[1]---Ard[2]---Cd[1]---Ald[1]---Ald[2]---
 we print energy for every iteration
 """
- function square_peps_duc_HeisenbergII(T,chi;maxiter=20,err=1e-8)
+ function square_peps_duc_HeisenbergIII(T,chi;maxiter=20,err=1e-8)
      d,D=size(T[1],1,2)
 
      Alu=Ald=[]
