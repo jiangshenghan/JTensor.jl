@@ -34,7 +34,7 @@ Cu=Cd=[eye(D^2) for i=1:2]
 Tu=[permutedims(T[i],[1,2,4,3,5]) for i=1:2]
 Td=[permutedims(T[i],[1,4,2,5,3]) for i=1:2]
 Flu=Fru=Fld=Frd=jcontract([eye(Complex128,D^2),eye(Complex128,D),eye(Complex128,D)],[[-1,-4],[-2,-5],[-3,-6]])
-chiu=chid=10
+chiu=chid=20
 
 Gl=Gr=jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]])
 

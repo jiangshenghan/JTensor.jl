@@ -29,7 +29,7 @@ chiu=chid=20
 
 Gl=Gr=jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]])
 
-for iter=1:100
+for iter=1:10
     Bu,Cu,Flu,Fru=dl_mult_mpo_mps([Au],[Tu],chiu,Flu,Fru)
     Bd,Cd,Fld,Frd=dl_mult_mpo_mps([Ad],[Td],chid,Fld,Frd)
     Au=jcontract([diagm(Cu[1]),Bu[1]],[[-1,1],[1,-2,-3,-4]])
@@ -43,13 +43,13 @@ for iter=1:100
     end
 
     leftlm=LinearMap([Gl,Au,T,conj(T),Ad],[[1,2,3,4],[1,-1,5,6],[7,2,5,-2,8],[7,3,6,-3,9],[-4,4,8,9]],1)
-    leig_res=eigs(leftlm,nev=1,v0=Gl[:],ncv=40,tol=1e-8)
+    leig_res=eigs(leftlm,nev=1,v0=Gl[:],ncv=20,tol=1e-8)
     λl,Gl=leig_res
     λl=λl[1]
     Gl=reshape(Gl,chiu,D,D,chid)
 
     rightlm=LinearMap([Gr,Au,T,conj(T),Ad],[[1,2,3,4],[-1,1,5,6],[7,-2,5,2,8],[7,-3,6,3,9],[4,-4,8,9]],1)
-    reig_res=eigs(rightlm,nev=1,v0=Gr[:],ncv=40,tol=1e-8)
+    reig_res=eigs(rightlm,nev=1,v0=Gr[:],ncv=20,tol=1e-8)
     λr,Gr=reig_res
     λr=λr[1]
     Gr=reshape(Gr,chiu,D,D,chid)
