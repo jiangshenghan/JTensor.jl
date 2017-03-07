@@ -13,25 +13,14 @@ function jcontract(tensor_list,legs_list)
     #TODO:get trace of a single tensor
 
     #initialization
-    result_tensor=[]
-    result_legs=[]
-    result_dims=0
+    result_tensor=tensor_list[1]
+    result_legs=legs_list[1]
+    result_dims=collect(size(result_tensor))
 
-    for k=1:size(tensor_list,1)
+    for k=2:size(tensor_list,1)
         curr_tensor=tensor_list[k]
         curr_legs=legs_list[k]
         curr_dims=collect(size(curr_tensor))
-
-        #println("k=",k)
-        #println("curr_legs: ",curr_legs)
-        #println("curr_dims: ",curr_dims)
-
-        if isempty(result_tensor)
-            result_tensor=curr_tensor
-            result_legs=curr_legs
-            result_dims=curr_dims
-            continue
-        end
 
         comm_legs=intersect(result_legs,curr_legs)
         result_comm_inds=map(y->findfirst(x->x==y,result_legs),comm_legs)

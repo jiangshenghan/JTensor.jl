@@ -25,11 +25,11 @@ Cu=Cd=eye(D^2)
 Tu=permutedims(T,[1,2,4,3,5])
 Td=permutedims(T,[1,4,2,5,3])
 Flu=Fru=Fld=Frd=jcontract([eye(Complex128,D^2),eye(Complex128,D),eye(Complex128,D)],[[-1,-4],[-2,-5],[-3,-6]])
-chiu=chid=20
+chiu=chid=10
 
 Gl=Gr=jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]])
 
-for iter=1:10
+for iter=1:5
     Bu,Cu,Flu,Fru=dl_mult_mpo_mps([Au],[Tu],chiu,Flu,Fru)
     Bd,Cd,Fld,Frd=dl_mult_mpo_mps([Ad],[Td],chid,Fld,Frd)
     Au=jcontract([diagm(Cu[1]),Bu[1]],[[-1,1],[1,-2,-3,-4]])
