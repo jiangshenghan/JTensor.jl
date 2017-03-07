@@ -1,25 +1,34 @@
 include("../src/JTensor.jl")
 using JTensor
 
-#zero srvb
-T=[zeros(2,3,3,3,3) for i=1:2]
-T[1][1,2,3,3,3]=1
-T[1][2,1,3,3,3]=-1
-T[1][1,3,1,3,3]=-1
-T[1][2,3,2,3,3]=-1
-T[1][1,3,3,1,3]=-1
-T[1][2,3,3,2,3]=-1
-T[1][1,3,3,3,2]=1
-T[1][2,3,3,3,1]=-1
+#running command
+#julia square_pi_rvb_energy_itebd.jl chi
 
-T[2][1,2,3,3,3]=1
-T[2][2,1,3,3,3]=-1
-T[2][1,3,1,3,3]=1
-T[2][2,3,2,3,3]=1
-T[2][1,3,3,1,3]=-1
-T[2][2,3,3,2,3]=-1
-T[2][1,3,3,3,2]=1
-T[2][2,3,3,3,1]=-1
+#pi srvb
+#T=[zeros(2,3,3,3,3) for i=1:2]
+#T[1][1,2,3,3,3]=1
+#T[1][2,1,3,3,3]=-1
+#T[1][1,3,1,3,3]=-1
+#T[1][2,3,2,3,3]=-1
+#T[1][1,3,3,1,3]=-1
+#T[1][2,3,3,2,3]=-1
+#T[1][1,3,3,3,2]=1
+#T[1][2,3,3,3,1]=-1
+#
+#T[2][1,2,3,3,3]=1
+#T[2][2,1,3,3,3]=-1
+#T[2][1,3,1,3,3]=1
+#T[2][2,3,2,3,3]=1
+#T[2][1,3,3,1,3]=-1
+#T[2][2,3,3,2,3]=-1
+#T[2][1,3,3,3,2]=1
+#T[2][2,3,3,3,1]=-1
+
+#pi rvb D=6
+T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+T=[T[:,1],T[:,2]]
+T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+
 
 D=size(T[1],2)
 DD=D^2
@@ -39,11 +48,11 @@ Cu=Cd=[eye(DD) for i=1:2]
 TTu=[permutedims(TT[i],[1,3,2,4]) for i=1:2]
 TTd=[permutedims(TT[i],[3,1,4,2]) for i=1:2]
 Flu=Fru=Fld=Frd=jcontract([eye(Complex128,DD),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
-chiu=chid=10
+chiu=chid=parse(Int,ARGS[1])
 
 Gl=Gr=reshape(jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chiu,DD,chid)
 
-for iter=1:5
+for iter=1:100
     Bu,Cu,Flu,Fru=sl_mult_mpo_mps(Au,TTu,chiu,Flu,Fru)
     Bd,Cd,Fld,Frd=sl_mult_mpo_mps(Ad,TTd,chid,Fld,Frd)
     Au=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
