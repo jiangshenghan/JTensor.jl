@@ -26,26 +26,26 @@ FBl  TB  TA         TA  TB  FBr
 
 returns (Al,Ar,Ac,Bl,Br,Bc,C1,C2,FAl,FAr,FBl,FBr,free_energy,err_mean)
 """
-function sl_two_vumps(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
+function sl_two_vumps(TA,TB,chi,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],FAl=[],FAr=[],FBl=[],FBr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128)
 
-    @printf("χ=%d, maxiter=%d, ep=%e, e0=%e \n",χ,maxiter,ep,e0)
+    @printf("chi=%d, maxiter=%d, ep=%e, e0=%e \n",chi,maxiter,ep,e0)
     #initialization
     Dh,Dv=size(TA,1,3)
     @printf("Dh=%d, Dv=%d \n",Dh,Dv)
 
-    if Al==[] Al=permutedims(reshape(qr(rand(elemtype,χ*Dv,χ))[1],χ,Dv,χ),[1,3,2]) end
+    if Al==[] Al=permutedims(reshape(qr(rand(elemtype,chi*Dv,chi))[1],chi,Dv,chi),[1,3,2]) end
     if Ar==[] Ar=permutedims(Al,[2,1,3]) end
-    if Bl==[] Bl=permutedims(reshape(qr(rand(elemtype,χ*Dv,χ))[1],χ,Dv,χ),[1,3,2]) end
+    if Bl==[] Bl=permutedims(reshape(qr(rand(elemtype,chi*Dv,chi))[1],chi,Dv,chi),[1,3,2]) end
     if Br==[] Br=permutedims(Bl,[2,1,3]) end
 
-    if Ac==[] Ac=rand(elemtype,χ,χ,Dv) end
-    if Bc==[] Bc=rand(elemtype,χ,χ,Dv) end
-    if C1==[] C1=rand(elemtype,χ,χ) end
-    if C2==[] C2=rand(elemtype,χ,χ) end
-    if FAl==[] FAl=rand(elemtype,χ,Dh,χ) end
-    if FAr==[] FAr=rand(elemtype,χ,Dh,χ) end
-    if FBl==[] FBl=rand(elemtype,χ,Dh,χ) end
-    if FBr==[] FBr=rand(elemtype,χ,Dh,χ) end
+    if Ac==[] Ac=rand(elemtype,chi,chi,Dv) end
+    if Bc==[] Bc=rand(elemtype,chi,chi,Dv) end
+    if C1==[] C1=rand(elemtype,chi,chi) end
+    if C2==[] C2=rand(elemtype,chi,chi) end
+    if FAl==[] FAl=rand(elemtype,chi,Dh,chi) end
+    if FAr==[] FAr=rand(elemtype,chi,Dh,chi) end
+    if FBl==[] FBl=rand(elemtype,chi,Dh,chi) end
+    if FBr==[] FBr=rand(elemtype,chi,Dh,chi) end
 
     free_energy=0.
 
@@ -56,7 +56,7 @@ function sl_two_vumps(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],F
         λAl,vAl=eigs(leftlm,nev=1,v0=FAl[:],tol=max(ep/100,err_mean/200,1e-15))
         λAl=λAl[1]
         err_FAl=1-abs(dot(vAl[:],FAl[:]))/(norm(vAl[:])*norm(FAl[:]))
-        FAl=reshape(vAl[:],χ,Dh,χ)
+        FAl=reshape(vAl[:],chi,Dh,chi)
         vBl=jcontract([FAl,Al,TA,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
         err_FBl=1-abs(dot(vBl[:],FBl[:]))/(norm(vBl[:])*norm(FBl[:]))
         FBl=vBl
@@ -65,7 +65,7 @@ function sl_two_vumps(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],F
         λAr,vAr=eigs(rightlm,nev=1,v0=FAr[:],tol=max(ep/100,err_mean/200,1e-15))
         λAr=λAr[1]
         err_FAr=1-abs(dot(vAr[:],FAr[:]))/(norm(vAr[:])*norm(FAr[:]))
-        FAr=reshape(vAr[:],χ,Dh,χ)
+        FAr=reshape(vAr[:],chi,Dh,chi)
         vBr=jcontract([FAr,Ar,TA,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
         err_FBr=1-abs(dot(vBr[:],FBr[:]))/(norm(vBr[:])*norm(FBr[:]))
         FBr=vBr
@@ -76,41 +76,41 @@ function sl_two_vumps(TA,TB,χ,Al=[],Ar=[],Bl=[],Br=[],Ac=[],Bc=[],C1=[],C2=[],F
         λAc,vAc=eigs(Aclm,nev=1,v0=Ac[:],tol=max(ep/100,err_mean/200,1e-15))
         λAc=λAc[1]
         err_Ac=1-abs(dot(vAc[:],Ac[:]))/(norm(vAc[:])*norm(Ac[:]))
-        Ac=reshape(vAc[:],χ,χ,Dv)
+        Ac=reshape(vAc[:],chi,chi,Dv)
 
         Bclm=LinearMap([FBl,Bc,TB,FBr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]],2,elemtype=elemtype)
         λBc,vBc=eigs(Bclm,nev=1,v0=Bc[:],tol=max(ep/100,err_mean/200,1e-15))
         λBc=λBc[1]
         err_Bc=1-abs(dot(vBc[:],Bc[:]))/(norm(vBc[:])*norm(Bc[:]))
-        Bc=reshape(vBc[:],χ,χ,Dv)
+        Bc=reshape(vBc[:],chi,chi,Dv)
 
         C1lm=LinearMap([FBl,C1,FAr],[[1,2,-1],[1,3],[3,2,-2]],2,elemtype=elemtype)
         λC1,vC1=eigs(C1lm,nev=1,v0=C1[:],tol=max(ep/100,err_mean/200,1e-15))
         λC1=λC1[1]
         err_C1=1-abs(dot(vC1[:],C1[:]))/(norm(vC1[:])*norm(C1[:]))
-        C1=reshape(vC1[:],χ,χ)
+        C1=reshape(vC1[:],chi,chi)
 
         C2lm=LinearMap([FAl,C2,FBr],[[1,2,-1],[1,3],[3,2,-2]],2,elemtype=elemtype)
         λC2,vC2=eigs(C2lm,nev=1,v0=C2[:],tol=max(ep/100,err_mean/200,1e-15))
         λC2=λC2[1]
         err_C2=1-abs(dot(vC2[:],C2[:]))/(norm(vC2[:])*norm(C2[:]))
-        C2=reshape(vC2[:],χ,χ)
+        C2=reshape(vC2[:],chi,chi)
 
-        UAc,PAc=polardecomp(reshape(permutedims(Ac,[1,3,2]),χ*Dv,χ))
+        UAc,PAc=polardecomp(reshape(permutedims(Ac,[1,3,2]),chi*Dv,chi))
         UC1,PC1=polardecomp(C1)
-        Al=permutedims(reshape(UAc*UC1',χ,Dv,χ),[1,3,2])
+        Al=permutedims(reshape(UAc*UC1',chi,Dv,chi),[1,3,2])
 
-        UAc,PAc=polardecomp(reshape(permutedims(Ac,[2,3,1]),χ*Dv,χ))
+        UAc,PAc=polardecomp(reshape(permutedims(Ac,[2,3,1]),chi*Dv,chi))
         UC2,PC2=polardecomp(transpose(C2))
-        Ar=permutedims(reshape(UAc*UC2',χ,Dv,χ),[3,1,2])
+        Ar=permutedims(reshape(UAc*UC2',chi,Dv,chi),[3,1,2])
 
-        UBc,PBc=polardecomp(reshape(permutedims(Bc,[1,3,2]),χ*Dv,χ))
+        UBc,PBc=polardecomp(reshape(permutedims(Bc,[1,3,2]),chi*Dv,chi))
         UC2,PC2=polardecomp(C2)
-        Bl=permutedims(reshape(UBc*UC2',χ,Dv,χ),[1,3,2])
+        Bl=permutedims(reshape(UBc*UC2',chi,Dv,chi),[1,3,2])
 
-        UBc,PBc=polardecomp(reshape(permutedims(Bc,[2,3,1]),χ*Dv,χ))
+        UBc,PBc=polardecomp(reshape(permutedims(Bc,[2,3,1]),chi*Dv,chi))
         UC1,PC1=polardecomp(transpose(C1))
-        Br=permutedims(reshape(UBc*UC1',χ,Dv,χ),[3,1,2])
+        Br=permutedims(reshape(UBc*UC1',chi,Dv,chi),[3,1,2])
 
         err_Al=vecnorm(Ac-jcontract([Al,C1],[[-1,1,-3],[1,-2]]))
         err_Ar=vecnorm(Ac-jcontract([C2,Ar],[[-1,1],[1,-2,-3]]))
