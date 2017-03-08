@@ -2,7 +2,7 @@ include("../src/JTensor.jl")
 using JTensor
 
 #running command
-#julia square_pi_rvb_energy_itebd.jl chi
+#julia square_pi_rvb_energy_sl_itebd.jl chi
 
 #pi srvb
 #T=[zeros(2,3,3,3,3) for i=1:2]

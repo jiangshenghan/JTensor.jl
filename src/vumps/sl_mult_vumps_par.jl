@@ -19,7 +19,7 @@ convention:
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
-function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=40)
+function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
 
     @printf("chi=%d, ep=%e, e0=%e \n",chi,ep,e0)
 
@@ -91,14 +91,15 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         err_Fr=1-abs(dot(vr[:],Fr[N][:]))/(norm(vr[:])*norm(Fr[N][:]))
         Fr[N]=reshape(vr[:],chi,Dh,chi)
         for ir=N-1:-1:1
-            vr=jcontract([Fr[ir+1],Ar[ir],T[ir],conj(A[ir])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
+            vr=jcontract([Fr[ir+1],Ar[ir],T[ir],conj(Ar[ir])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
             err_Fr=max(err_Fr,1-abs(dot(vr[:],Fr[ir][:]))/(norm(vr[:])*norm(Fr[ir][:])))
-            F[ir]=vr
+            Fr[ir]=vr
         end
 
-        @printf("iteration %d, eig iter info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n ",iter,leig_res[4],leig_res[5],reig_res[4],reig_res[5])
+        @printf("iteration %d, eig mult info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n ",iter,leig_res[4],leig_res[5],reig_res[4],reig_res[5])
 
         err_Ac=err_C=0
+        λAcC=1.;
         for ic=1:N
             Aclm=LinearMap([Fl[ic],Ac[ic],T[ic],Fr[ic]],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]],2,elemtype=elemtype)
             Aceig_res=eigs(Aclm,nev=1,v0=Ac[ic][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
@@ -113,7 +114,9 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             λC=λC[1]
             err_C=max(err_C,1-abs(dot(vC[:],C[ic][:]))/(norm(vC[:])*norm(C[ic][:])))
             C[ic]=reshape(vC[:],chi,chi)
-            @printf("singular values at site %d\n",ic)
+
+            λAcC*=λAc/λC
+            @printf("At site %d\n eig mult info:\n Acninter=%d, Acnmult=%d \n Cniter=%d, Cnmult=%d \n singular values:\n",ic,Aceig_res[4],Aceig_res[5],Ceig_res[4],Ceig_res[5])
             println(svd(C[ic])[2])
         end
 
@@ -133,7 +136,7 @@ function dl_mult_vumps_seq(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
         free_energy=mean([λr,λl])
 
-        @printf("free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n error in prediction \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_C: %.16e \n err_Al: %.16e \n err_Ar %.16e \n \n",real(λl),imag(λl),real(λr),imag(λr),err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar)
+        @printf("free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n λAcC: %.16f + i %e \n error in prediction \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_C: %.16e \n err_Al: %.16e \n err_Ar %.16e \n \n",real(λl),imag(λl),real(λr),imag(λr),real(λAcC),imag(λAcC),err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar)
         flush(STDOUT)
 
         err=max(err_Al,err_Ar)
