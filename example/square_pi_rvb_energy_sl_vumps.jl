@@ -84,12 +84,16 @@ Acd=[jcontract([Ald[i],Cd[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
 
 Flu=Fru=[reshape(jcontract([eye(Complex128,chiu),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chiu,DD,chiu) for i=1:2]
 Fld=Frd=[reshape(jcontract([eye(Complex128,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chid,DD,chid) for i=1:2]
+erru=errd=1.
 
 Gl=Gr=reshape(jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chiu,DD,chid)
 
-for iter=1:5
-    Alu,Aru,Acu,Cu,Flu,Fru=sl_mult_vumps_par(TTu,chiu,Alu,Aru,Acu,Cu,Flu,Fru,e0=1,maxiter=1)
-    Ald,Ard,Acd,Cd,Fld,Frd=sl_mult_vumps_par(TTd,chid,Ald,Ard,Acd,Cd,Flu,Fru,e0=1,maxiter=1)
+#VUMPS to obtain energy
+for iter=1:10
+    println("Upper iMPS:")
+    Alu,Aru,Acu,Cu,Flu,Fru,_,erru=sl_mult_vumps_par(TTu,chiu,Alu,Aru,Acu,Cu,Flu,Fru,e0=erru,maxiter=1)
+    println("Lower iMPS:")
+    Ald,Ard,Acd,Cd,Fld,Frd,_,errd=sl_mult_vumps_par(TTd,chid,Ald,Ard,Acd,Cd,Flu,Fru,e0=errd,maxiter=1)
 
     leftlm=LinearMap([Gl,Alu[1],TT[1],Ald[1],Alu[2],TT[2],Ald[2]],[[1,2,3],[1,6,4],[2,4,7,5],[8,3,5],[6,-1,9],[7,9,-2,10],[-3,8,10]],1)
     leig_res=eigs(leftlm,nev=1,v0=Gl[:],ncv=20,tol=1e-8)
