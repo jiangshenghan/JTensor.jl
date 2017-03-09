@@ -25,9 +25,14 @@ using JTensor
 #T[2][2,3,3,3,1]=-1
 
 #pi rvb D=6
-T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
-T=[T[:,1],T[:,2]]
-T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+#T=[T[:,1],T[:,2]]
+#T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+
+#zero rvb D=6, but measure using two sites per uc
+T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_zero_flux")
+T=reshape(T,2,6,6,6,6)
+T=[T,T]
 
 
 D=size(T[1],2)
