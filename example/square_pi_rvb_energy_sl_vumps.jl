@@ -112,6 +112,18 @@ for iter=1:300
 
     @printf("iter=%d\n wf_norm=%f+i%f\n energy=%.16f+i%e\n\n",iter,real(wf_norm),imag(wf_norm),real(energy),imag(energy))
      flush(STDOUT)
+
+     if iter%10==0
+         Hlu=Hru=jcontract([eye(Complex128,chi),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
+         Bu,Cu=sl_mult_mpo_mps(Alu,TTu,chi,Hlu,Hru)
+         Alu=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
+         chi=size(Cu[1],1)
+         Cu=[complex(diagm(Cu[i])) for i=1:2]
+         Aru=[jcontract([Bu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
+         Acu=[jcontract([Alu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
+         Flu=Fru=[reshape(jcontract([eye(Complex128,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi) for i=1:2]
+         Gl=Gr=reshape(jcontract([eye(Complex128,chi,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi)
+     end
 end
 
 
