@@ -63,7 +63,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         err_Fl=1-abs(dot(vl[:],Fl[1][:]))/(norm(vl[:])*norm(Fl[1][:]))
         Fl[1]=reshape(vl[:],chi,Dh,chi)
         for il=2:N
-            vl=jcontract([Fl[il-1],Al[il],T[il],conj(Al[il])],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
+            vl=jcontract([Fl[il-1],Al[il-1],T[il-1],conj(Al[il-1])],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
             err_Fl=max(err_Fl,1-abs(dot(vl[:],Fl[il][:]))/(norm(vl[:])*norm(Fl[il][:])))
             Fl[il]=vl
         end
@@ -91,7 +91,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         err_Fr=1-abs(dot(vr[:],Fr[N][:]))/(norm(vr[:])*norm(Fr[N][:]))
         Fr[N]=reshape(vr[:],chi,Dh,chi)
         for ir=N-1:-1:1
-            vr=jcontract([Fr[ir+1],Ar[ir],T[ir],conj(Ar[ir])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
+            vr=jcontract([Fr[ir+1],Ar[ir+1],T[ir+1],conj(Ar[ir+1])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
             err_Fr=max(err_Fr,1-abs(dot(vr[:],Fr[ir][:]))/(norm(vr[:])*norm(Fr[ir][:])))
             Fr[ir]=vr
         end

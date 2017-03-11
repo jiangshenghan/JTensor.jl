@@ -92,11 +92,11 @@ we print energy for every iteration
          println("symmetry!")
          println()
          ##D=3 case
-         #if D==3
-         #    W=[0 1 0; -1 0 0; 0 0 1]
-         #    JW=[0 -1 0; 1 0 0; 0 0 1]
-         #end
-         #D=6(0⊕1/2⊕1) case
+         if D==3
+             W=[0 1 0; -1 0 0; 0 0 1]
+             JW=[0 -1 0; 1 0 0; 0 0 1]
+         end
+         #D=6(0+1/2+1) case
          if D==6
              W=zeros(6,6)
              W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
