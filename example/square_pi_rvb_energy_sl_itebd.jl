@@ -25,14 +25,14 @@ using JTensor
 #T[2][2,3,3,3,1]=-1
 
 #pi rvb D=6
-#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
-#T=[T[:,1],T[:,2]]
-#T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux_II")
+T=[T[:,1],T[:,2]]
+T=[reshape(T[i],2,6,6,6,6) for i=1:2]
 
 #zero rvb D=6, but measure using two sites per uc
-T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_zero_flux")
-T=reshape(T,2,6,6,6,6)
-T=[T,T]
+#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_zero_flux")
+#T=reshape(T,2,6,6,6,6)
+#T=[T,T]
 
 
 D=size(T[1],2)
@@ -59,9 +59,27 @@ Gl=Gr=reshape(jcontract([eye(Complex128,chiu,chid),eye(Complex128,D)],[[-1,-4],[
 
 for iter=1:100
     Bu,Cu,Flu,Fru=sl_mult_mpo_mps(Au,TTu,chiu,Flu,Fru)
-    Bd,Cd,Fld,Frd=sl_mult_mpo_mps(Ad,TTd,chid,Fld,Frd)
+    #Bd,Cd,Fld,Frd=sl_mult_mpo_mps(Ad,TTd,chid,Fld,Frd)
     Au=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
-    Ad=[jcontract([diagm(Cd[3-i]),Bd[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
+    #Ad=[jcontract([diagm(Cd[3-i]),Bd[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
+
+    #generate the fixed point tensor from lower half-plane by symmetry, where we assume the symmetry transforms trivially
+    println("symmetry!")
+    println()
+    #D=3 case
+    #if D==3
+    #    W=[0 1 0; -1 0 0; 0 0 1]
+    #end
+    #D=6(0+1/2+1) case
+    if D==6
+        W=zeros(6,6)
+        W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
+        W[5,2]=W[4,4]=-1
+    end
+    WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
+    #for pi flux rvb
+    Ad=[jcontract([Au[i],WW],[[-1,-2,1],[1,-3]]) for i=1:2]
+    Cd=[Cu[i] for i=1:2]
 
     if (chiu!=size(Au[1],1) || chid!=size(Ad[1],1) || iter==1)
         chiu,chid=size(Au[1],1),size(Ad[1],1)
