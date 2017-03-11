@@ -1,6 +1,6 @@
 
-#include("/home/jiangsb/code/JTensor.jl/example/square_peps_energy_II.jl")
-include("/home/jiangsb/code/JTensor.jl/example/square_peps_energy_III.jl")
+include("/home/jiangsb/code/JTensor.jl/example/square_peps_energy_II.jl")
+#include("/home/jiangsb/code/JTensor.jl/example/square_peps_energy_III.jl")
 
 #test square zero flux rvb
 #/home/jiangsb/code/JTensor.jl/tensor_data/square_zero_flux
@@ -35,8 +35,8 @@ function test_square_pi_rvb_energy(file_name,chi,d=2,D=6;maxiter=300)
     Tb=TT[:,2]
     Ta=reshape(Ta,d,D,D,D,D)
     Tb=reshape(Tb,d,D,D,D,D)
-    #square_peps_duc_HeisenbergII(Ta,Tb,chi,maxiter=maxiter,err=1e-8)
-    square_peps_duc_HeisenbergIII([Ta,Tb],chi,maxiter=maxiter,err=1e-12)
+    square_peps_duc_HeisenbergII(Ta,Tb,chi,maxiter=maxiter,err=1e-8)
+    #square_peps_duc_HeisenbergIII([Ta,Tb],chi,maxiter=maxiter,err=1e-12)
 end
 
 
