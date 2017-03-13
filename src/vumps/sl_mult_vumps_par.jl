@@ -41,15 +41,17 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
     for iter=1:maxiter
         #left fix point
+        l0=1
         left_tensor_list=[]
         left_legs_list=[]
-        push!(left_tensor_list,Fl[1])
+        push!(left_tensor_list,Fl[l0])
         push!(left_legs_list,[1,2,3])
-        for il=1:N
+        for jl=l0:N+l0-1
+            il=(jl-1)%N+1
             append!(left_tensor_list,[Al[il],T[il],conj(Al[il])])
             legs_list_il=[[1,6,4],[2,7,4,5],[3,8,5]]
-            legs_list_il+=(il-1)*5
-            if (il==N)
+            legs_list_il+=(jl-l0)*5
+            if (il==N+l0-1)
                 legs_list_il[1][2]=-1
                 legs_list_il[2][2]=-2
                 legs_list_il[3][2]=-3
@@ -57,27 +59,30 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             append!(left_legs_list,legs_list_il)
         end
         leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
-        leig_res=eigs(leftlm,nev=1,v0=Fl[1][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+        leig_res=eigs(leftlm,nev=1,v0=Fl[l0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λl,vl=leig_res
         λl=λl[1]
-        err_Fl=1-abs(dot(vl[:],Fl[1][:]))/(norm(vl[:])*norm(Fl[1][:]))
-        Fl[1]=reshape(vl[:],chi,Dh,chi)
-        for il=2:N
-            vl=jcontract([Fl[il-1],Al[il-1],T[il-1],conj(Al[il-1])],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
+        err_Fl=1-abs(dot(vl[:],Fl[l0][:]))/(norm(vl[:])*norm(Fl[l0][:]))
+        Fl[l0]=reshape(vl[:],chi,Dh,chi)
+        for jl=1+l0:N+l0-1
+            il=(jl-1)%N+1
+            vl=jcontract([Fl[il==1?N:il-1],Al[il==1?N:il-1],T[il==1?N:il-1],conj(Al[il==1?N:il-1])],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
             err_Fl=max(err_Fl,1-abs(dot(vl[:],Fl[il][:]))/(norm(vl[:])*norm(Fl[il][:])))
             Fl[il]=vl
         end
 
         #right fixed point
+        r0=1
         right_tensor_list=[]
         right_legs_list=[]
-        push!(right_tensor_list,Fr[1])
+        push!(right_tensor_list,Fr[r0])
         push!(right_legs_list,[1,2,3])
-        for ir=N:-1:1
+        for jr=r0:-1:r0-N+1
+            ir=(jr+N-1)%N+1
             append!(right_tensor_list,[Ar[ir],T[ir],conj(Ar[ir])])
             legs_list_ir=[[6,1,4],[7,2,4,5],[8,3,5]]
-            legs_list_ir+=(N-ir)*5
-            if (ir==1)
+            legs_list_ir+=(r0-jr)*5
+            if (jr==r0-N+1)
                 legs_list_ir[1][1]=-1
                 legs_list_ir[2][1]=-2
                 legs_list_ir[3][1]=-3
@@ -85,13 +90,14 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             append!(right_legs_list,legs_list_ir)
         end
         rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
-        reig_res=eigs(rightlm,nev=1,v0=Fr[N][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+        reig_res=eigs(rightlm,nev=1,v0=Fr[r0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λr,vr=reig_res
         λr=λr[1]
-        err_Fr=1-abs(dot(vr[:],Fr[N][:]))/(norm(vr[:])*norm(Fr[N][:]))
-        Fr[N]=reshape(vr[:],chi,Dh,chi)
-        for ir=N-1:-1:1
-            vr=jcontract([Fr[ir+1],Ar[ir+1],T[ir+1],conj(Ar[ir+1])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
+        err_Fr=1-abs(dot(vr[:],Fr[r0][:]))/(norm(vr[:])*norm(Fr[r0][:]))
+        Fr[r0]=reshape(vr[:],chi,Dh,chi)
+        for jr=r0-1:-1:r0-N+1
+            ir=(jr+N-1)%N+1
+            vr=jcontract([Fr[ir==N?1:ir+1],Ar[ir==N?1:ir+1],T[ir==N?1:ir+1],conj(Ar[ir==N?1:ir+1])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
             err_Fr=max(err_Fr,1-abs(dot(vr[:],Fr[ir][:]))/(norm(vr[:])*norm(Fr[ir][:])))
             Fr[ir]=vr
         end

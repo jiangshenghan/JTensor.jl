@@ -5,29 +5,29 @@ using JTensor
 #julia square_pi_rvb_energy_sl_vumps.jl chi
 
 #pi srvb
-#T=[zeros(Complex128,2,3,3,3,3) for i=1:2]
-#T[1][1,2,3,3,3]=1
-#T[1][2,1,3,3,3]=-1
-#T[1][1,3,1,3,3]=-1
-#T[1][2,3,2,3,3]=-1
-#T[1][1,3,3,1,3]=-1
-#T[1][2,3,3,2,3]=-1
-#T[1][1,3,3,3,2]=1
-#T[1][2,3,3,3,1]=-1
-#
-#T[2][1,2,3,3,3]=1
-#T[2][2,1,3,3,3]=-1
-#T[2][1,3,1,3,3]=1
-#T[2][2,3,2,3,3]=1
-#T[2][1,3,3,1,3]=-1
-#T[2][2,3,3,2,3]=-1
-#T[2][1,3,3,3,2]=1
-#T[2][2,3,3,3,1]=-1
+T=[zeros(Complex128,2,3,3,3,3) for i=1:2]
+T[1][1,2,3,3,3]=1
+T[1][2,1,3,3,3]=-1
+T[1][1,3,1,3,3]=-1
+T[1][2,3,2,3,3]=-1
+T[1][1,3,3,1,3]=-1
+T[1][2,3,3,2,3]=-1
+T[1][1,3,3,3,2]=1
+T[1][2,3,3,3,1]=-1
+
+T[2][1,2,3,3,3]=1
+T[2][2,1,3,3,3]=-1
+T[2][1,3,1,3,3]=1
+T[2][2,3,2,3,3]=1
+T[2][1,3,3,1,3]=-1
+T[2][2,3,3,2,3]=-1
+T[2][1,3,3,3,2]=1
+T[2][2,3,3,3,1]=-1
 
 #pi rvb D=6
-T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
-T=[T[:,1],T[:,2]]
-T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+#T=[T[:,1],T[:,2]]
+#T=[reshape(T[i],2,6,6,6,6) for i=1:2]
 
 
 D=size(T[1],2)
@@ -113,17 +113,17 @@ for iter=1:300
     @printf("iter=%d\n wf_norm=%f+i%f\n energy=%.16f+i%e\n\n",iter,real(wf_norm),imag(wf_norm),real(energy),imag(energy))
      flush(STDOUT)
 
-     if iter%10==0
-         Hlu=Hru=jcontract([eye(Complex128,chi),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
-         Bu,Cu=sl_mult_mpo_mps(Alu,TTu,chi,Hlu,Hru)
-         Alu=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
-         chi=size(Cu[1],1)
-         Cu=[complex(diagm(Cu[i])) for i=1:2]
-         Aru=[jcontract([Bu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
-         Acu=[jcontract([Alu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
-         Flu=Fru=[reshape(jcontract([eye(Complex128,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi) for i=1:2]
-         Gl=Gr=reshape(jcontract([eye(Complex128,chi,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi)
-     end
+     #if iter%10==0
+     #    Hlu=Hru=jcontract([eye(Complex128,chi),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
+     #    Bu,Cu=sl_mult_mpo_mps(Alu,TTu,chi,Hlu,Hru)
+     #    Alu=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
+     #    chi=size(Cu[1],1)
+     #    Cu=[complex(diagm(Cu[i])) for i=1:2]
+     #    Aru=[jcontract([Bu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
+     #    Acu=[jcontract([Alu[i],Cu[i]],[[-1,1,-3],[1,-2]]) for i=1:2]
+     #    Flu=Fru=[reshape(jcontract([eye(Complex128,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi) for i=1:2]
+     #    Gl=Gr=reshape(jcontract([eye(Complex128,chi,chi),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi,DD,chi)
+     #end
 end
 
 
