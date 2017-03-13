@@ -41,7 +41,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
     for iter=1:maxiter
         #left fix point
-        l0=1
+        l0=N
         left_tensor_list=[]
         left_legs_list=[]
         push!(left_tensor_list,Fl[l0])
@@ -51,7 +51,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             append!(left_tensor_list,[Al[il],T[il],conj(Al[il])])
             legs_list_il=[[1,6,4],[2,7,4,5],[3,8,5]]
             legs_list_il+=(jl-l0)*5
-            if (il==N+l0-1)
+            if (jl==N+l0-1)
                 legs_list_il[1][2]=-1
                 legs_list_il[2][2]=-2
                 legs_list_il[3][2]=-3

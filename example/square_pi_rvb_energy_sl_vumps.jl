@@ -61,10 +61,12 @@ end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
 #using iTEBD to get initial state
-Alu=[reshape(jcontract([T[i],conj(T[i])],[[1,-1,2,-3,-5],[1,-2,2,-4,-6]]),DD,DD,DD) for i=1:2]
+#Alu=[reshape(jcontract([T[i],conj(T[i])],[[1,-1,2,-3,-5],[1,-2,2,-4,-6]]),DD,DD,DD) for i=1:2]
+#Alu=[reshape(jcontract([eye(Complex128,chi),eye(Complex128,D)],[[-1,-2],[-3,-4]]),chi,chi,DD) for i=1:2]
+Alu=[reshape(eye(Complex128,D),1,1,DD) for i=1:2]
 Bu=Cu=[]
-Flu=Fru=jcontract([eye(Complex128,DD),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
-for iter=1:2
+Flu=Fru=jcontract([eye(Complex128,size(Alu[1],1)),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
+for iter=1:3
     Bu,Cu,Flu,Fru=sl_mult_mpo_mps(Alu,TTu,chi,Flu,Fru)
     Alu=[jcontract([diagm(Cu[3-i]),Bu[i]],[[-1,1],[1,-2,-3]]) for i=1:2]
     chi=size(Cu[1],1)
