@@ -145,7 +145,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         @printf("free energy \n λl: %.16f + i %e \n λr: %.16f + i %e  \n λAcC: %.16f + i %e \n error in prediction \n err_Fl: %.16e \n err_Fr: %.16e \n err_Ac: %.16e \n err_C: %.16e \n err_Al: %.16e \n err_Ar %.16e \n \n",real(λl),imag(λl),real(λr),imag(λr),real(λAcC),imag(λAcC),err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar)
         flush(STDOUT)
 
-        err=max(err_Al,err_Ar)
+        err=mean([err_Al,err_Ar])
         if err<ep break end
 
     end
