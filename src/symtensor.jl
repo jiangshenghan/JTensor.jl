@@ -33,7 +33,7 @@ end
 given certain spin rep (can be reducible in general), obtain spin operators
 Convention: 
 1. arrow=+1 means rep, return S, and arrow=-1 means conjugate rep, return -S^t
-2. inside irep Si, m from +Si to -Si
+2. for irep Si, m from +Si to -Si
 
 return Sz,S^+ 
 """
@@ -96,7 +96,9 @@ function spin_sym_space(spin_reps,arrows)
     end
 
     M=int_basis(nullspace(reshape(Sz,tot_dims,tot_dims)),nullspace(reshape(Sp,tot_dims,tot_dims)))
-    return reshape(M,leg_dims...,div(length(M),tot_dims))
+    ds=div(length(M),tot_dims)
+    println("singlet subspace:",ds,"\n")
+    return reshape(M,leg_dims...,ds)
 end
 
 """
