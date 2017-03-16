@@ -1,9 +1,9 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0,0.5,0.5,0.5,0.5]
+chi_spin=[0,0,0,0.5,0.5,0.5,1,1]
 chi=Int(sum(x->2x+1,chi_spin))
-maxiter=100
+maxiter=300
 println("chi=",chi)
 println("chi spins: ",chi_spin)
 println("maxiter=",maxiter)
@@ -12,32 +12,32 @@ flush(STDOUT)
 
 
 #pi srvb
-T=[zeros(Complex128,2,3,3,3,3) for i=1:2]
-T[1][1,2,3,3,3]=1
-T[1][2,1,3,3,3]=-1
-T[1][1,3,1,3,3]=-1
-T[1][2,3,2,3,3]=-1
-T[1][1,3,3,1,3]=-1
-T[1][2,3,3,2,3]=-1
-T[1][1,3,3,3,2]=1
-T[1][2,3,3,3,1]=-1
-
-T[2][1,2,3,3,3]=1
-T[2][2,1,3,3,3]=-1
-T[2][1,3,1,3,3]=1
-T[2][2,3,2,3,3]=1
-T[2][1,3,3,1,3]=-1
-T[2][2,3,3,2,3]=-1
-T[2][1,3,3,3,2]=1
-T[2][2,3,3,3,1]=-1
-
-virt_spin=[0.5,0]
+#T=[zeros(Complex128,2,3,3,3,3) for i=1:2]
+#T[1][1,2,3,3,3]=1
+#T[1][2,1,3,3,3]=-1
+#T[1][1,3,1,3,3]=-1
+#T[1][2,3,2,3,3]=-1
+#T[1][1,3,3,1,3]=-1
+#T[1][2,3,3,2,3]=-1
+#T[1][1,3,3,3,2]=1
+#T[1][2,3,3,3,1]=-1
+#
+#T[2][1,2,3,3,3]=1
+#T[2][2,1,3,3,3]=-1
+#T[2][1,3,1,3,3]=1
+#T[2][2,3,2,3,3]=1
+#T[2][1,3,3,1,3]=-1
+#T[2][2,3,3,2,3]=-1
+#T[2][1,3,3,3,2]=1
+#T[2][2,3,3,3,1]=-1
+#
+#virt_spin=[0.5,0]
 
 #pi rvb D=6
-#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
-#T=[T[:,1],T[:,2]]
-#T=[reshape(T[i],2,6,6,6,6) for i=1:2]
-#virt_spin=[0,0.5,1]
+T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+T=[T[:,1],T[:,2]]
+T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+virt_spin=[0,0.5,1]
 
 
 #initialize
