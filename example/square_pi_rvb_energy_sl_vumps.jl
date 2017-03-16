@@ -1,7 +1,7 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi=[30]
+chi=[15]
 maxiter=[100]
 println("chi=")
 println(chi)
@@ -49,8 +49,10 @@ end
 #D=6(0+1/2+1) case
 if D==6
     W=zeros(6,6)
-    W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
-    W[5,2]=W[4,4]=-1
+    W[1,1]=W[2,3]=W[4,6]=W[6,4]=1
+    W[3,2]=W[5,5]=-1
+    #W[6,1]=W[3,3]=W[2,5]=W[1,6]=1
+    #W[5,2]=W[4,4]=-1
 end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
@@ -58,6 +60,7 @@ WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 #Au=[reshape(jcontract([T[i],conj(T[i])],[[1,-1,2,-3,-5],[1,-2,2,-4,-6]]),DD,DD,DD) for i=1:2]
 Au=[reshape(eye(Complex128,D),1,1,DD) for i=1:2]
 Bu=Cu=[]
+#symmetry
 
 for counti=1:length(chi)
     @printf("counti=%d,\n chi=%d,\n maxiter=%d\n",counti,chi[counti],maxiter[counti])
