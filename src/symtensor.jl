@@ -98,3 +98,11 @@ function spin_sym_space(spin_reps,arrows)
     M=int_basis(nullspace(reshape(Sz,tot_dims,tot_dims)),nullspace(reshape(Sp,tot_dims,tot_dims)))
     return reshape(M,leg_dims...,div(length(M),tot_dims))
 end
+
+"""
+project tensor to symmetric subspace
+"""
+function sym_tensor_proj(T,M)
+    return jcontract([T,conj(M),M],[collect(1:ndims(T)),collect(1:ndims(T)+1),[-1:-1:-ndims(T)...,ndims(T)+1]])
+end
+
