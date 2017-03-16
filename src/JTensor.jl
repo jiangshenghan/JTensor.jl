@@ -1,7 +1,7 @@
 
 module JTensor
 
-export jcontract, LinearMap, polardecomp, spin_sym_space
+export jcontract, LinearMap, polardecomp, spin_sym_space, sym_tensor_proj
 export sl_one_vumps, sl_two_vumps, sl_mult_vumps_par, dl_one_vumps, dl_two_vumps, dl_mult_vumps_seq
 export sl_mult_mpo_mps, dl_mult_mpo_mps
 export square_heisenberg
