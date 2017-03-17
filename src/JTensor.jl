@@ -12,6 +12,7 @@ include("jcontract.jl")
 include("linearmap.jl")
 include("matdecomp.jl")
 include("symtensor.jl")
+include("cgtensor.jl")
 
 include("vumps/sl_one_vumps.jl")
 include("vumps/sl_two_vumps.jl")
