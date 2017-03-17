@@ -43,6 +43,39 @@ function CG_tensor(js,arrows)
     return CG_tens;
 end
 
+"""
+input spin reps, and arrows, obtain all possible fusion channels
+
+return fusion_tens
+"""
+function spin_fusion_tensors(spin_reps,arrows)
+    fusion_tens=[]
+    legs_dims=[sum(x->Int(2x+1),spin_reps[i]) for i=1:size(spin_reps,1)]
+
+    ia=1
+    for sa in spin_reps[1]
+        ra=ia:ia+Int(2*sa)
+        ib=1
+        for sb in spin_reps[2]
+            rb=ib:ib+Int(2*sb)
+            ic=1
+            for sc in spin_reps[3]
+                rc=ic:ic+Int(2*sc)
+                if abs(sa-sb)<=sc<=sa+sb 
+                    CG_tens=zeros(leg_dims...)
+                    CG_tens[ra,rb,rc]=CG_tensor([sa,sb,sc],arrows)
+                    push!(fusion_tens,CG_tens)
+                end
+                ic=rc[2]+1
+            end
+            ib=rb[2]+1
+        end
+        ia=ra[2]+1
+    end
+
+    return fusion_tens
+end
+
 
 """
 given a spin singlet basis T, its last leg "a" and a new spin rep (leg "b"), generate all possible basis S defined as
@@ -53,8 +86,8 @@ Notice that arrows[1] should be inverse of direction of leg "a" of T
 return S,c_irrep
 """
 function spin_basis_add_leg(spin_reps,arrows,T=[]) 
-    S=[]
     c_irrep=[]
+    S=[]
     ia=1
 
     for sa in spin_reps[1]
@@ -91,7 +124,15 @@ return M
 function spin_singlet_space_from_cg(spin_reps,arrows)
     nlegs=size(spin_reps,1)
     legs_dims=[sum(x->Int(2x+1),spin_reps[i]) for i=1:nlegs]
-    M,leg_irrep=spin_basis_add_leg(spin_reps[1:2],[arrows[1],arrows[2],1])
+    M=[]
+    c_irreps=[]
+
+    for sc=0:max(spin_reps[1])+max(spin_reps[2])
+        fusion_tens=spin_fusion_tensors([spin_reps[1],spin_reps[2],[sc]],[arrows[1],arrows[2],1])
+        append!(M,fusion_tens)
+        push!(c_irreps,[sc,size(fusion_tens,1)])
+    end
+
     for legi=3:nlegs-1
         M_next=[]
         leg_irrep_next=[]
