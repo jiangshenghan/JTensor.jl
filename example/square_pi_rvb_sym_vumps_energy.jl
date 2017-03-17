@@ -46,9 +46,11 @@ DD=D^2
 TTu=[permutedims(reshape(jcontract([T[i],conj(T[i])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4]) for i=1:2]
 
 #spin symmetric subspace
-MA=spin_sym_space([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+#MA=spin_sym_space([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+#MC=spin_sym_space([chi_spin,chi_spin],[1,-1])
+MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
 MA=reshape(MA,chi,chi,DD,size(MA)[end])
-MC=spin_sym_space([chi_spin,chi_spin],[1,-1])
 
 #symmetry transformation
 #D=3 case
