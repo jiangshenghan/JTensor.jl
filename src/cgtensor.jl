@@ -82,7 +82,7 @@ end
 """
 input spin_reps and arrows
 generating spin singlet tensor basis M
-return M
+return singlet_basis
 """
 function spin_singlet_space_from_cg(spin_reps,arrows)
     nlegs=size(spin_reps,1)
@@ -92,15 +92,26 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
 
     if nlegs==1 return 0 end
     if nlegs==2
-        M=three_spin_fusion_tensors([spin_reps[0],spin_reps[1],[0]],[arrows[0],arrows[1],1])
+        M=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[0]],[arrows[1],arrows[2],1])
         println("singlet subspace dims:",size(M,1))
-        M=reshape(hcat(M...),legs_dims...,size(M,1))
-        return M
+        map!(tens->tens/vecnorm(tens),M)
+        singlet_basis=zeros(legs_dims...,size(M,1))
+        for basei=1:size(M,1) singlet_basis[:,:,basei]=M[basei] end
+        return singlet_basis
+    end
+    if nlegs==3
+        M=three_spin_fusion_tensors(spin_reps,arrows)
+        println("singlet subspace dims:",size(M,1))
+        map!(tens->tens/vecnorm(tens),M)
+        singlet_basis=zeros(legs_dims...,size(M,1))
+        for basei=1:size(M,1) singlet_basis[:,:,:,basei]=M[basei] end
+        return singlet_basis
     end
 
     #initialize for the first two spins
-    for sc=0:max(spin_reps[1])+max(spin_reps[2])
+    for sc=0:0.5:max(spin_reps[1]...)+max(spin_reps[2]...)
         fusion_tens=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[sc]],[arrows[1],arrows[2],1])
+        @show spin_reps[1],spin_reps[2],sc
         append!(M,fusion_tens)
         append!(c_irreps,[sc for i=1:size(fusion_tens,1)])
     end
@@ -111,12 +122,12 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
         c_irreps_next=[]
 
         for basei=1:size(M,1)
-            sc_min=min(abs(c_irreps[basei]-min(spin_reps[legi])),abs(max(spin_reps[legi])-c_irreps[basei]))
-            sc_max=c_irreps[basei]+max(spin_reps[legi])
+            sc_max=c_irreps[basei]+max(spin_reps[legi]...)
             
-            for sc=sc_min:sc_max
+            for sc=0:0.5:sc_max
                 fusion_tens=three_spin_fusion_tensors([[c_irreps[basei]],spin_reps[legi],[sc]],[-1,arrows[legi],1])
-                append!(M_next,map(tens->jcontract([M[basei],tens],[[(-1:-1:legi+1)...,1],[1,-legi,-legi-1]]),fusion_tens))
+                @show c_irreps[basei],spin_reps[legi],sc,size(fusion_tens,1)
+                append!(M_next,map(tens->jcontract([M[basei],tens],[[(-1:-1:-legi+1)...,1],[1,-legi,-legi-1]]),fusion_tens))
                 append!(c_irreps_next,[sc for i=1:size(fusion_tens,1)])
             end
 
@@ -130,11 +141,13 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     M_final=[]
     for basei=1:size(M,1)
         fusion_tens=three_spin_fusion_tensors([[c_irreps[basei]],spin_reps[end-1],spin_reps[end]],[-1,arrows[end-1],arrows[end]])
-        append!(M_final,map(tens->jcontract([M[basei],tens],[[(-1:-1:-nlegs+2)...,1],[1,-nlegs+1,-nlegs]])),fusion_tens)
+        append!(M_final,map(tens->jcontract([M[basei],tens],[[(-1:-1:-nlegs+2)...,1],[1,-nlegs+1,-nlegs]]),fusion_tens))
     end
     M=M_final
 
     println("singlet subspace dims:",size(M,1))
-    M=reshape(hcat(M...),legs_dims...,size(M,1))
-    return M
+    map!(tens->tens/vecnorm(tens),M)
+    singlet_basis=zeros(legs_dims...,size(M,1))
+    for basei=1:size(M,1) singlet_basis[[Colon() for i=1:nlegs]...,basei]=M[basei] end
+    return singlet_basis
 end
