@@ -1,9 +1,10 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0,0.5,0.5,0.5,1,1]
+#chi_spin=[0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5,0.5,1.0,1.0,1.0,1.0]
+chi_spin=[repeat([0,0.5],inner=7)...,0.5,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
-maxiter=300
+maxiter=500
 println("chi=",chi)
 println("chi spins: ",chi_spin)
 println("maxiter=",maxiter)
@@ -12,32 +13,32 @@ flush(STDOUT)
 
 
 #pi srvb
-#T=[zeros(Complex128,2,3,3,3,3) for i=1:2]
-#T[1][1,2,3,3,3]=1
-#T[1][2,1,3,3,3]=-1
-#T[1][1,3,1,3,3]=-1
-#T[1][2,3,2,3,3]=-1
-#T[1][1,3,3,1,3]=-1
-#T[1][2,3,3,2,3]=-1
-#T[1][1,3,3,3,2]=1
-#T[1][2,3,3,3,1]=-1
-#
-#T[2][1,2,3,3,3]=1
-#T[2][2,1,3,3,3]=-1
-#T[2][1,3,1,3,3]=1
-#T[2][2,3,2,3,3]=1
-#T[2][1,3,3,1,3]=-1
-#T[2][2,3,3,2,3]=-1
-#T[2][1,3,3,3,2]=1
-#T[2][2,3,3,3,1]=-1
-#
-#virt_spin=[0.5,0]
+T=[zeros(2,3,3,3,3) for i=1:2]
+T[1][1,2,3,3,3]=1
+T[1][2,1,3,3,3]=-1
+T[1][1,3,1,3,3]=-1
+T[1][2,3,2,3,3]=-1
+T[1][1,3,3,1,3]=-1
+T[1][2,3,3,2,3]=-1
+T[1][1,3,3,3,2]=1
+T[1][2,3,3,3,1]=-1
+
+T[2][1,2,3,3,3]=1
+T[2][2,1,3,3,3]=-1
+T[2][1,3,1,3,3]=1
+T[2][2,3,2,3,3]=1
+T[2][1,3,3,1,3]=-1
+T[2][2,3,3,2,3]=-1
+T[2][1,3,3,3,2]=1
+T[2][2,3,3,3,1]=-1
+
+virt_spin=[0.5,0]
 
 #pi rvb D=6
-T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
-T=[T[:,1],T[:,2]]
-T=[reshape(T[i],2,6,6,6,6) for i=1:2]
-virt_spin=[0,0.5,1]
+#T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+#T=[T[:,1],T[:,2]]
+#T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+#virt_spin=[0,0.5,1]
 
 
 #initialize
@@ -65,11 +66,12 @@ if D==6
 end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
-Alu=rand(Complex128,chi,chi,DD)
+srand()
+Alu=complex(rand(chi,chi,DD))
 Alu=[Alu,Alu]
 Aru=Alu
 Acu=Alu
-Cu=rand(Complex128,chi,chi)
+Cu=complex(rand(chi,chi))
 Cu=[Cu,Cu]
 err=1.
 
