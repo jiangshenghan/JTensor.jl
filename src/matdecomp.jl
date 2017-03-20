@@ -26,19 +26,19 @@ Vt=oplus_{si}(Vt^{si}=oplus_{si}(Vt'^{si}\otimes I_{2si+1})
 return {U^{si}},{S^{si}},{Vt^{si}},{spins}
 """
 function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
+
     right_legs=setdiff(collect(1:ndims(T)),left_legs)
-
-    lmax_spin=sum(i->max(spin_reps[left_legs[i]]...),1:ndims(left_legs))
-    rmax_spin=sum(i->max(spin_reps[right_legs[i]]...),1:ndims(right_legs))
-    max_spin=min(lmax_spin,rmax_spin)
-    @show lmax_spin,rmax_spin,max_spin
-
     rl=1:length(left_legs)
     rr=1:length(right_legs)
     leg_order=zeros(Int,ndims(T))
     for i=rl leg_order[left_legs[i]]=i end
     for i=rr leg_order[right_legs[i]]=i+length(left_legs) end
+    lmax_spin=sum(i->max(spin_reps[left_legs[i]]...),rl)
+    rmax_spin=sum(i->max(spin_reps[right_legs[i]]...),rr)
+    max_spin=min(lmax_spin,rmax_spin)
     @show rl,rr,leg_order
+    @show lmax_spin,rmax_spin,max_spin
+
 
     Us=[]
     Ss=[]
@@ -50,7 +50,7 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[arrows[right_legs]...,1])*sqrt(2*si+1)
         if ML==[] || MR==[] continue end
 
-        @show ML,MR
+        @show si
         @show reshape(jcontract([ML,conj(ML)],[[rl...,-1,-2],[rl...,-3,-4]]),size(ML)[end]*Int(2*si+1),size(ML)[end]*Int(2*si+1))
         @show reshape(jcontract([MR,conj(MR)],[[rr...,-1,-2],[rr...,-3,-4]]),size(MR)[end]*Int(2*si+1),size(MR)[end]*Int(2*si+1))
 
