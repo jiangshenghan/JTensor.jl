@@ -65,7 +65,7 @@ function three_spin_fusion_tensors(spin_reps,arrows)
                 if abs(sa-sb)<=sc<=sa+sb && abs((sa+sb+sc)%1)<eps(Float64)
                     CG_tens=zeros(legs_dims...)
                     CG_tens[ra,rb,rc]=CG_tensor([sa,sb,sc],arrows)
-                    @show sa,sb,sc
+                    #@show sa,sb,sc
                     push!(fusion_tens,CG_tens)
                 end
                 ic=rc[end]+1
@@ -93,7 +93,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     if nlegs==1 return 0 end
     if nlegs==2
         M=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[0]],[arrows[1],arrows[2],1])
-        println("singlet subspace dims:",size(M,1))
+        #println("singlet subspace dims:",size(M,1))
         if size(M,1)==0 return [] end
         map!(tens->tens/vecnorm(tens),M)
         singlet_basis=zeros(legs_dims...,size(M,1))
@@ -102,7 +102,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     end
     if nlegs==3
         M=three_spin_fusion_tensors(spin_reps,arrows)
-        println("singlet subspace dims:",size(M,1))
+        #println("singlet subspace dims:",size(M,1))
         if size(M,1)==0 return [] end
         map!(tens->tens/vecnorm(tens),M)
         singlet_basis=zeros(legs_dims...,size(M,1))
@@ -113,7 +113,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     #initialize for the first two spins
     for sc=0:0.5:max(spin_reps[1]...)+max(spin_reps[2]...)
         fusion_tens=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[sc]],[arrows[1],arrows[2],1])
-        @show spin_reps[1],spin_reps[2],sc
+        #@show spin_reps[1],spin_reps[2],sc
         append!(M,fusion_tens)
         append!(c_irreps,[sc for i=1:size(fusion_tens,1)])
     end
@@ -128,7 +128,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
             
             for sc=0:0.5:sc_max
                 fusion_tens=three_spin_fusion_tensors([[c_irreps[basei]],spin_reps[legi],[sc]],[-1,arrows[legi],1])
-                @show c_irreps[basei],spin_reps[legi],sc,size(fusion_tens,1)
+                #@show c_irreps[basei],spin_reps[legi],sc,size(fusion_tens,1)
                 append!(M_next,map(tens->jcontract([M[basei],tens],[[(-1:-1:-legi+1)...,1],[1,-legi,-legi-1]]),fusion_tens))
                 append!(c_irreps_next,[sc for i=1:size(fusion_tens,1)])
             end
@@ -147,7 +147,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     end
     M=M_final
 
-    println("singlet subspace dims:",size(M,1))
+    #println("singlet subspace dims:",size(M,1))
     if size(M,1)==0 return [] end
     map!(tens->tens/vecnorm(tens),M)
     singlet_basis=zeros(legs_dims...,size(M,1))
