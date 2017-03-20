@@ -94,6 +94,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     if nlegs==2
         M=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[0]],[arrows[1],arrows[2],1])
         println("singlet subspace dims:",size(M,1))
+        if size(M,1)==0 return [] end
         map!(tens->tens/vecnorm(tens),M)
         singlet_basis=zeros(legs_dims...,size(M,1))
         for basei=1:size(M,1) singlet_basis[:,:,basei]=M[basei] end
@@ -102,6 +103,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     if nlegs==3
         M=three_spin_fusion_tensors(spin_reps,arrows)
         println("singlet subspace dims:",size(M,1))
+        if size(M,1)==0 return [] end
         map!(tens->tens/vecnorm(tens),M)
         singlet_basis=zeros(legs_dims...,size(M,1))
         for basei=1:size(M,1) singlet_basis[:,:,:,basei]=M[basei] end
@@ -146,6 +148,7 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     M=M_final
 
     println("singlet subspace dims:",size(M,1))
+    if size(M,1)==0 return [] end
     map!(tens->tens/vecnorm(tens),M)
     singlet_basis=zeros(legs_dims...,size(M,1))
     for basei=1:size(M,1) singlet_basis[[Colon() for i=1:nlegs]...,basei]=M[basei] end

@@ -1,7 +1,7 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
+chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 maxiter=500
 println("chi=",chi)
@@ -72,10 +72,10 @@ Aru=Alu
 Acu=Alu
 Cu=complex(rand(chi,chi))
 Cu=[Cu,Cu]
-err=1.
+err=1e-12
 
 for iter=1:maxiter
-    Alu,Aru,Acu,Cu,_,_,_,err=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+    Alu,Aru,Acu,Cu,_,_,_,_=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
     Alu[1]=sym_tensor_proj(Alu[1],MA)
     Aru[1]=sym_tensor_proj(Aru[1],MA)
     Acu[1]=sym_tensor_proj(Acu[1],MA)
@@ -92,3 +92,4 @@ for iter=1:maxiter
     square_heisenberg(Alu,Ald,T)
     println()
 end
+
