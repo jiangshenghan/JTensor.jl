@@ -25,6 +25,7 @@ Vt=oplus_{si}(Vt^{si}=oplus_{si}(Vt'^{si}\otimes I_{2si+1})
 
 return {U^{si}},{S^{si}},{Vt^{si}},{spins}
 """
+#TODO:check the case for left_legs!=[1,2,...,]
 function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
 
     right_legs=setdiff(collect(1:ndims(T)),left_legs)
@@ -42,9 +43,6 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     Vts=[]
     spins=[]
 
-    PL=zeros(size(T)[left_legs]...,size(T)[left_legs]...)
-    PR=zeros(size(T)[right_legs]...,size(T)[right_legs]...)
-
     for si=0:0.5:rmax_spin
         ML=spin_singlet_space_from_cg([spin_reps[left_legs]...,[si]],[-arrows[left_legs]...,-1])*sqrt(2*si+1)
         MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[-arrows[right_legs]...,1])*sqrt(2*si+1)
@@ -59,12 +57,6 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         push!(Us,jcontract([conj(ML),Usi],[[-rl...,1,2],[1,2,-rl[end]-1]]))
         push!(Vts,jcontract([Vtsi,conj(MR)],[[-1,1,2],[(-rr-1)...,1,2]]))
         push!(spins,si)
-
-        PL=jcontract([conj(ML),ML],[[-rl...,1,2],[(-rl-rl[end])...,1,2]])
-        PR=jcontract([conj(MR),MR],[[-rr...,1,2],[(-rr-rr[end])...,1,2]])
-        Tp=jcontract([PL,T,PR],[[-rl...,rl...],[1:ndims(T)...],[(-rr-rl[end])...,(rr+rl[end])...]])
-        USVi=jcontract([Us[end],diagm(Ss[end]),Vts[end]],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]])
-
     end
 
     #test svd
