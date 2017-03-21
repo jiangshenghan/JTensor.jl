@@ -28,25 +28,32 @@ function square_pi_flux_spin_sym_two_site_update(T,Fl,Fr,dchi,T_spin_rep,chi_spi
     A2c=reshape(A2c,chi,D,chi,D)
 
     #get spin symmetric svd
-    Us,Ss,Vts,spins=svd_spin_sym_tensor(A2c,[1,2],[chi_spin_rep,T_spin_rep,chi_spin_rep,T_spin_rep],[1,1,-1,1])
+    Us,Ss,Vts,vals_spin_rep=svd_spin_sym_tensor(A2c,[1,2],[chi_spin_rep,T_spin_rep,chi_spin_rep,T_spin_rep],[-1,1,1,1])
     svals=vcat(Ss...)
     vals_order=sortperm(svals,rev=true)
     while svals[vals_order[chi+dchi+1]]/svals[vals_order[chi+dchi]]<cut_ratio dchi+=1 end
-    spin_qns=map(ind->spin_qn_from_ind(ind,spin_reps[2])[1],vals_order[1:chi+dchi])
-    chi_spin=...
+    vals_order=vals_order[1:chi+dchi]
+    smin,smax=min(vals_spin_rep),max(vals_spin_rep)
+    vals_spin_rep_temp=[]
+    for s=smin:0.5:smax
+        spin_deg=div(count(x->spin_qn_from(x,vals_spin_rep)==s,vals_order),Int(2*s+1))
+        append!(vals_spin_rep_temp,s*ones(spin_deg))
+    end
+    vals_spin_rep=vals_spin_rep_temp
+    @show vals_spin_rep
 
     #update Al and Ar
     Al=zeros(chi+dchi,chi+dchi,D)
     Ar=zeros(chi+dchi,chi+dchi,D)
 
-    iter=1
-    for is in enumerate[spins]
-        deg=count(s->s==is[2],spin_qns)
-        Al[1:chi,iter:iter+deg-1,:]=Us[is[1]][:,:,1:deg]
-        iter+=deg
+    iter=ind=1
+    for s=smin:0.5:smax
+        deg=count(s->s==vals_spin_rep)*(2s+1)
+        Al[1:chi,ind:ind+deg-1,:]=Us[iter][:,:,1:deg]
+        Ar[ind:ind+deg-1,1:chi,:]=Vts[iter][1:deg,:,:]
+        iter+=1
+        ind+=deg
     end
-    Al[1:chi,vals_order[1:chi+dchi],:]=Us[:,:,vals_order[1:chi+dchi]]
-    Ar[,1:chi,:]=Vts[vals_order[1:chi+dchi],:,:]
 
-    return Al,Ar,chi+dchi,chi_spin_rep
+    return Al,Ar,chi+dchi,vals_spin_rep
 end
