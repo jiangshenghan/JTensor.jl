@@ -2,13 +2,14 @@
 
 """
 get spin quantum number from ind and spin_rep
+negative spin means conjugate rep
 """
 function spin_qn_from_ind(ind,spin_rep)
     for spin in spin_rep
-        if 2*spin+1>=ind
-            return spin,spin-ind+1
+        if 2*abs(spin)+1>=ind
+            return spin,abs(spin)-ind+1
         else
-            ind=ind-2*spin-1
+            ind=ind-2*abs(spin)-1
         end
     end
     return "ind overflow"
@@ -16,6 +17,7 @@ end
 
 """
 given three spin irreps, get fusion tensors CG_tens 
+negative js or -1 arrow means conj irrep
 return CG_tens
 """
 function CG_tensor(js,arrows)
@@ -43,9 +45,14 @@ function CG_tensor(js,arrows)
     return CG_tens;
 end
 
-"""
-input THREE spin reps, and their arrows, obtain all possible fusion channels
+function CG_tensor(js)
+    return CG_tensor(abs(js),Int.(sign(js)))
+end
 
+
+"""
+input THREE spin reps, obtain all possible fusion channels
+in general for a single leg, there can be both rep or conj rep
 return fusion_tens
 """
 function three_spin_fusion_tensors(spin_reps,arrows)
@@ -65,6 +72,36 @@ function three_spin_fusion_tensors(spin_reps,arrows)
                 if abs(sa-sb)<=sc<=sa+sb && abs((sa+sb+sc)%1)<eps(Float64)
                     CG_tens=zeros(legs_dims...)
                     CG_tens[ra,rb,rc]=CG_tensor([sa,sb,sc],arrows)
+                    #@show sa,sb,sc
+                    push!(fusion_tens,CG_tens)
+                end
+                ic=rc[end]+1
+            end
+            ib=rb[end]+1
+        end
+        ia=ra[end]+1
+    end
+
+    return fusion_tens
+end
+
+function three_spin_fusion_tensors(spin_reps)
+    spin_reps*=1.
+    fusion_tens=[]
+    legs_dims=[sum(x->Int(2*abs(x)+1),spin_reps[i]) for i=1:size(spin_reps,1)]
+
+    ia=1
+    for sa in spin_reps[1]
+        ra=ia:ia+Int(2*abs(sa))
+        ib=1
+        for sb in spin_reps[2]
+            rb=ib:ib+Int(2*abs(sb))
+            ic=1
+            for sc in spin_reps[3]
+                rc=ic:ic+Int(2*abs(sc))
+                if abs(abs(sa)-abs(sb))<=abs(sc)<=abs(sa)+abs(sb) && abs((sa+sb+sc)%1)<eps(Float64)
+                    CG_tens=zeros(legs_dims...)
+                    CG_tens[ra,rb,rc]=CG_tensor([sa,sb,sc])
                     #@show sa,sb,sc
                     push!(fusion_tens,CG_tens)
                 end

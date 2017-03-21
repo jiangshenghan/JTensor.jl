@@ -23,7 +23,7 @@ U=oplus_{si}(U^{si})=oplus_{si}(U'^{si}\otimes I_{2si+1})
 S=oplus_{si}(S^{si})=oplus_{si}(S'^{si}\otimes I_{2si+1})
 Vt=oplus_{si}(Vt^{si}=oplus_{si}(Vt'^{si}\otimes I_{2si+1})
 
-return {U^{si}},{S^{si}},{Vt^{si}},{spins}
+return {U^{si}},{S^{si}},{Vt^{si}},{vals_spin_rep}
 """
 #TODO:check the case for left_legs!=[1,2,...,]
 function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
@@ -41,9 +41,9 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     Us=[]
     Ss=[]
     Vts=[]
-    spins=[]
+    vals_spin_rep=[]
 
-    for si=0:0.5:rmax_spin
+    for si=0:0.5:max_spin
         ML=spin_singlet_space_from_cg([spin_reps[left_legs]...,[si]],[-arrows[left_legs]...,-1])*sqrt(2*si+1)
         MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[-arrows[right_legs]...,1])*sqrt(2*si+1)
         if ML==[] || MR==[] continue end
@@ -56,7 +56,7 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         push!(Ss,repeat(svd_res[:S],inner=Int(2*si+1)))
         push!(Us,jcontract([conj(ML),Usi],[[-rl...,1,2],[1,2,-rl[end]-1]]))
         push!(Vts,jcontract([Vtsi,conj(MR)],[[-1,1,2],[(-rr-1)...,1,2]]))
-        push!(spins,si)
+        append!(vals_spin_rep,si*ones(length(svd_res[:S])))
     end
 
     #test svd
@@ -76,5 +76,5 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     #@show size(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]]))
     #@show vecnorm(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]])-permutedims(T,[left_legs...,right_legs...]))
 
-    return Us,Ss,Vts,spins
+    return Us,Ss,Vts,vals_spin_rep
 end
