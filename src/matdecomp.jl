@@ -27,7 +27,6 @@ return {U^{si}},{S^{si}},{Vt^{si}},{vals_spin_rep}
 """
 #TODO:check the case for left_legs!=[1,2,...,]
 function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
-
     right_legs=setdiff(collect(1:ndims(T)),left_legs)
     rl=1:length(left_legs)
     rr=1:length(right_legs)
@@ -75,6 +74,42 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     #S=vcat([Ss[i] for i=1:length(Ss)]...)
     #@show size(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]]))
     #@show vecnorm(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]])-permutedims(T,[left_legs...,right_legs...]))
+
+    return Us,Ss,Vts,vals_spin_rep
+end
+
+
+function svd_spin_sym_tensor(T,left_legs,spin_reps)
+    right_legs=setdiff(collect(1:ndims(T)),left_legs)
+    rl=1:length(left_legs)
+    rr=1:length(right_legs)
+    leg_order=zeros(Int,ndims(T))
+    for i=rl leg_order[left_legs[i]]=i end
+    for i=rr leg_order[right_legs[i]]=i+length(left_legs) end
+    lmax_spin=sum(i->max(abs(spin_reps[left_legs[i]])...),rl)
+    rmax_spin=sum(i->max(abs(spin_reps[right_legs[i]])...),rr)
+    max_spin=min(lmax_spin,rmax_spin)
+
+    Us=[]
+    Ss=[]
+    Vts=[]
+    vals_spin_rep=[]
+
+    for si=0:0.5:max_spin
+        ML=spin_singlet_space_from_cg([-spin_reps[left_legs]...,[-si]])*sqrt(2*si+1)
+        MR=spin_singlet_space_from_cg([-spin_reps[right_legs]...,[si]])*sqrt(2*si+1)
+        if ML==[] || MR==[] continue end
+
+        Tsi=jcontract([ML[[Colon() for i=rl]...,1,:],T,MR[[Colon() for i=rr]...,1,:]],[[rl...,-1],leg_order,[(length(left_legs)+rr)...,-2]])
+        svd_res=svdfact(Tsi)
+        Usi=reshape(jcontract([eye(Int(2*si+1)),svd_res[:U]],[[-1,-3],[-2,-4]]),Int(2*si+1),size(svd_res[:U],1),Int(2*si+1)*size(svd_res[:U],2))
+        Vtsi=reshape(jcontract([eye(Int(2*si+1)),svd_res[:Vt]],[[-1,-3],[-2,-4]]),Int(2*si+1)*size(svd_res[:Vt],1),Int(2*si+1),size(svd_res[:Vt],2))
+
+        push!(Ss,repeat(svd_res[:S],inner=Int(2*si+1)))
+        push!(Us,jcontract([conj(ML),Usi],[[-rl...,1,2],[1,2,-rl[end]-1]]))
+        push!(Vts,jcontract([Vtsi,conj(MR)],[[-1,1,2],[(-rr-1)...,1,2]]))
+        append!(vals_spin_rep,si*ones(length(svd_res[:S])))
+    end
 
     return Us,Ss,Vts,vals_spin_rep
 end
