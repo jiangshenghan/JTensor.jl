@@ -46,7 +46,7 @@ function CG_tensor(js,arrows)
 end
 
 function CG_tensor(js)
-    return CG_tensor(abs(js),Int.(sign(js)))
+    return CG_tensor(abs(js),Int.(sign(js+0.1)))
 end
 
 
@@ -180,6 +180,77 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     M_final=[]
     for basei=1:size(M,1)
         fusion_tens=three_spin_fusion_tensors([[c_irreps[basei]],spin_reps[end-1],spin_reps[end]],[-1,arrows[end-1],arrows[end]])
+        append!(M_final,map(tens->jcontract([M[basei],tens],[[(-1:-1:-nlegs+2)...,1],[1,-nlegs+1,-nlegs]]),fusion_tens))
+    end
+    M=M_final
+
+    #println("singlet subspace dims:",size(M,1))
+    if size(M,1)==0 return [] end
+    map!(tens->tens/vecnorm(tens),M)
+    singlet_basis=zeros(legs_dims...,size(M,1))
+    for basei=1:size(M,1) singlet_basis[[Colon() for i=1:nlegs]...,basei]=M[basei] end
+    return singlet_basis
+end
+
+function spin_singlet_space_from_cg(spin_reps)
+    nlegs=size(spin_reps,1)
+    legs_dims=[sum(x->Int(2*abs(x)+1),spin_reps[i]) for i=1:nlegs]
+    M=[]
+    c_irreps=[]
+
+    if nlegs==1 return 0 end
+    if nlegs==2
+        M=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[0]])
+        #println("singlet subspace dims:",size(M,1))
+        if size(M,1)==0 return [] end
+        map!(tens->tens/vecnorm(tens),M)
+        singlet_basis=zeros(legs_dims...,size(M,1))
+        for basei=1:size(M,1) singlet_basis[:,:,basei]=M[basei] end
+        return singlet_basis
+    end
+    if nlegs==3
+        M=three_spin_fusion_tensors(spin_reps)
+        #println("singlet subspace dims:",size(M,1))
+        if size(M,1)==0 return [] end
+        map!(tens->tens/vecnorm(tens),M)
+        singlet_basis=zeros(legs_dims...,size(M,1))
+        for basei=1:size(M,1) singlet_basis[:,:,:,basei]=M[basei] end
+        return singlet_basis
+    end
+
+    #initialize for the first two spins
+    for sc=0:0.5:max(abs(spin_reps[1])...)+max(abs(spin_reps[2])...)
+        fusion_tens=three_spin_fusion_tensors([spin_reps[1],spin_reps[2],[sc]])
+        #@show spin_reps[1],spin_reps[2],sc
+        append!(M,fusion_tens)
+        append!(c_irreps,[sc for i=1:size(fusion_tens,1)])
+    end
+
+    #middle legs
+    for legi=3:nlegs-2
+        M_next=[]
+        c_irreps_next=[]
+
+        for basei=1:size(M,1)
+            sc_max=c_irreps[basei]+max(abs(spin_reps[legi])...)
+            
+            for sc=0:0.5:sc_max
+                fusion_tens=three_spin_fusion_tensors([[c_irreps[basei]],spin_reps[legi],[sc]])
+                #@show c_irreps[basei],spin_reps[legi],sc,size(fusion_tens,1)
+                append!(M_next,map(tens->jcontract([M[basei],tens],[[(-1:-1:-legi+1)...,1],[1,-legi,-legi-1]]),fusion_tens))
+                append!(c_irreps_next,[sc for i=1:size(fusion_tens,1)])
+            end
+
+        end
+
+        M=M_next
+        c_irreps=c_irreps_next
+    end
+
+    #the last two legs
+    M_final=[]
+    for basei=1:size(M,1)
+        fusion_tens=three_spin_fusion_tensors([[-c_irreps[basei]],spin_reps[end-1],spin_reps[end]])
         append!(M_final,map(tens->jcontract([M[basei],tens],[[(-1:-1:-nlegs+2)...,1],[1,-nlegs+1,-nlegs]]),fusion_tens))
     end
     M=M_final
