@@ -75,6 +75,8 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     #@show size(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]]))
     #@show vecnorm(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]])-permutedims(T,[left_legs...,right_legs...]))
 
+    @show vals_spin_rep,Ss
+
     return Us,Ss,Vts,vals_spin_rep
 end
 
