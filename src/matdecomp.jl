@@ -46,7 +46,6 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         ML=spin_singlet_space_from_cg([spin_reps[left_legs]...,[si]],[-arrows[left_legs]...,-1])*sqrt(2*si+1)
         MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[-arrows[right_legs]...,1])*sqrt(2*si+1)
         if ML==[] || MR==[] continue end
-        @show si
 
         Tsi=jcontract([ML[[Colon() for i=rl]...,1,:],T,MR[[Colon() for i=rr]...,1,:]],[[rl...,-1],leg_order,[(length(left_legs)+rr)...,-2]])
         svd_res=svdfact(Tsi)
@@ -57,6 +56,10 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         push!(Us,jcontract([conj(ML),Usi],[[-rl...,1,2],[1,2,-rl[end]-1]]))
         push!(Vts,jcontract([Vtsi,conj(MR)],[[-1,1,2],[(-rr-1)...,1,2]]))
         append!(vals_spin_rep,si*ones(length(svd_res[:S])))
+
+        #check spin symmetric
+        MU=spin_singlet_space_from_cg([spin_reps[left_legs]...,si*ones(length(svd_res[:S]))],[arrows[left_legs]...,1])
+        @show si,vecnorm(Us[end]-sym_tensor_proj(Us[end],MU))
     end
 
     #test svd
@@ -77,7 +80,6 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     #end
     #S=vcat([Ss[i] for i=1:length(Ss)]...)
     #@show vecnorm(jcontract([U,diagm(S),Vt],[[-rl...,1],[1,2],[2,(-rr-rl[end])...]])-permutedims(T,[left_legs...,right_legs...]))
-
 
     @show Ss,vals_spin_rep
     println()

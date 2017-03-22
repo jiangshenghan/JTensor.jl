@@ -39,8 +39,8 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
     Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1])
     svals=vcat(Ss...)
     svals/=max(svals...)
-    Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
-    Vts=map(Vt->reshape(Vt,div(length(Vt),chi*DD),chi,DD),Vts)
+    #Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
+    #Vts=map(Vt->reshape(Vt,div(length(Vt),chi*DD),chi,DD),Vts)
 
     vals_order=sortperm(svals,rev=true)
     while svals[vals_order[chi+dchi+1]]/svals[vals_order[chi+dchi]]>cut_ratio dchi+=1 end
@@ -48,18 +48,18 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
     @show dchi
     @show svals[vals_order]
 
-    spin_list=union(val_spin)
+    spin_list=unique(val_spin)
     @show spin_list
     chi_spin_final=[]
     for s in spin_list
         flavor_deg=div(count(x->spin_qn_from_ind(x,val_spin)[1]==s,vals_order),Int(2*s+1))
         append!(chi_spin_final,s*ones(flavor_deg))
     end
-    @show chi_spin_final
+    @show chi_spin,chi_spin_final
 
     #update Al and Ar
-    Al=zeros(elemtype,chi+dchi,chi+dchi,DD)
-    Ar=zeros(elemtype,chi+dchi,chi+dchi,DD)
+    Al=zeros(elemtype,chi+dchi,chi+dchi,D,D)
+    Ar=zeros(elemtype,chi+dchi,chi+dchi,D,D)
 
     #get position of original indices in the increased bond
     ninds=[]
@@ -81,12 +81,12 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
             iter+=1
             continue 
         end
-        Al[ninds,ind:ind+deg-1,:]=permutedims(Us[iter][:,:,1:deg],[1,3,2])
-        Ar[ind:ind+deg-1,ninds,:]=Vts[iter][1:deg,:,:]
+        Al[ninds,ind:ind+deg-1,:,:]=permutedims(Us[iter][:,:,:,1:deg],[1,4,2,3])
+        Ar[ind:ind+deg-1,ninds,:,:]=Vts[iter][1:deg,:,:,:]
 
         #test
         MA=spin_singlet_space_from_cg([chi_spin_final,chi_spin_final,T_spin,T_spin],[1,-1,1,-1]) 
-        MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
+        #MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
         @show vecnorm(Al),vecnorm(Al-sym_tensor_proj(Al,MA))
         @show vecnorm(Ar),vecnorm(Ar-sym_tensor_proj(Ar,MA))
 
@@ -94,6 +94,8 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
         iter+=1
     end
 
+    Al=reshape(Al,chi+dchi,chi+dchi,DD)
+    Ar=reshape(Ar,chi+dchi,chi+dchi,DD)
     Al=[Al,Al]
     Ar=[Ar,Ar]
     return Al,Ar,chi+dchi,chi_spin_final
