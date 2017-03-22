@@ -125,7 +125,9 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
             λAcC*=λAc/λC
             @printf("At site %d\n eig mult info:\n Acninter=%d, Acnmult=%d \n Cniter=%d, Cnmult=%d \n singular values:\n",ic,Aceig_res[4],Aceig_res[5],Ceig_res[4],Ceig_res[5])
-            println(svd(C[ic])[2])
+            svals=svd(C[ic])[2]
+            svals/=max(svals...)
+            println(svals)
         end
 
         err_Al=err_Ar=0

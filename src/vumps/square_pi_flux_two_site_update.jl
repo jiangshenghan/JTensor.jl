@@ -15,10 +15,10 @@ T_spin are for spin rep for a virtual leg of single layer PEPS tensor T
 arrows for A2c: 1,1,-1,-1,1,1,-1
 arrows for TT: 1,-1,-1,1
 
-returns(Al,Ar,chi+dchi,val_spin)
+returns(Al,Ar,chi+dchi,chi_spin_final)
 """
 function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; A2c=[],cut_ratio=0.8,e0=1e-12,elemtype=Complex128,ncv=20)
-    chi=size(Al,1)
+    chi=size(Fl,1)
     DD=size(TT[1],1)
     D=Int(sqrt(DD))
     N=2
@@ -32,40 +32,69 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
     λA2c=λA2c[1]
     A2c=reshape(A2c,chi,D,D,chi,D,D)
     MA2c=spin_singlet_space_from_cg([chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1])
+    @show vecnorm(A2c-sym_tensor_proj(A2c,MA2c))
     A2c=sym_tensor_proj(A2c,MA2c)
 
     #get spin symmetric svd
-    Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,-1,-1,1,-1,1])
+    Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1])
     svals=vcat(Ss...)
-    map(U->reshape(U,chi,DD,chi*DD),Us)
-    map(Vt->reshape(Vt,chi*DD,chi,DD),Vts)
+    svals/=max(svals...)
+    Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
+    Vts=map(Vt->reshape(Vt,div(length(Vt),chi*DD),chi,DD),Vts)
 
     vals_order=sortperm(svals,rev=true)
     while svals[vals_order[chi+dchi+1]]/svals[vals_order[chi+dchi]]>cut_ratio dchi+=1 end
     vals_order=vals_order[1:chi+dchi]
+    @show dchi
+    @show svals[vals_order]
 
-    smin,smax=min(val_spin),max(val_spin)
-    val_spin_final=[]
-    for s=smin:0.5:smax
-        flavor_deg=div(count(x->spin_qn_from_ind(x,val_spin)==s,vals_order),Int(2*s+1))
-        append!(val_spin_final,s*ones(flavor_deg))
+    spin_list=union(val_spin)
+    @show spin_list
+    chi_spin_final=[]
+    for s in spin_list
+        flavor_deg=div(count(x->spin_qn_from_ind(x,val_spin)[1]==s,vals_order),Int(2*s+1))
+        append!(chi_spin_final,s*ones(flavor_deg))
     end
-    @show val_spin_final
+    @show chi_spin_final
 
     #update Al and Ar
-    Al=zeros(chi+dchi,chi+dchi,DD)
-    Ar=zeros(chi+dchi,chi+dchi,DD)
+    Al=zeros(elemtype,chi+dchi,chi+dchi,DD)
+    Ar=zeros(elemtype,chi+dchi,chi+dchi,DD)
 
-    iter=ind=1
-    for s=smin:0.5:smax
-        deg=count(s->s==val_spin)*Int(2s+1)
-        if deg==0 continue end
-        deg=count(s->s==val_spin_final)*Int(2s+1)
-        Al[1:chi,ind:ind+deg-1,:]=Us[iter][:,:,1:deg]
-        Ar[ind:ind+deg-1,1:chi,:]=Vts[iter][1:deg,:,:]
-        iter+=1
-        ind+=deg
+    #get position of original indices in the increased bond
+    ninds=[]
+    ind=1
+    for s in spin_list
+        odeg=count(x->x==s,chi_spin)*Int(2s+1)
+        ndeg=count(x->x==s,chi_spin_final)*Int(2s+1)
+        append!(ninds,collect(ind:ind+odeg-1))
+        ind=ind+ndeg
+        @show odeg,ndeg,ninds
     end
 
-    return Al,Ar,chi+dchi,val_spin_final
+    iter=ind=1
+    for s in spin_list
+        deg=count(x->x==s,chi_spin_final)*Int(2s+1)
+        @show s,iter,ind,deg
+        @show size(Us[iter]),size(Vts[iter])
+        if deg==0 
+            iter+=1
+            continue 
+        end
+        Al[ninds,ind:ind+deg-1,:]=permutedims(Us[iter][:,:,1:deg],[1,3,2])
+        Ar[ind:ind+deg-1,ninds,:]=Vts[iter][1:deg,:,:]
+
+        #test
+        MA=spin_singlet_space_from_cg([chi_spin_final,chi_spin_final,T_spin,T_spin],[1,-1,1,-1]) 
+        MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
+        @show vecnorm(Al),vecnorm(Al-sym_tensor_proj(Al,MA))
+        @show vecnorm(Ar),vecnorm(Ar-sym_tensor_proj(Ar,MA))
+
+        ind+=deg
+        iter+=1
+    end
+
+    Al=[Al,Al]
+    Ar=[Ar,Ar]
+    return Al,Ar,chi+dchi,chi_spin_final
 end
