@@ -26,7 +26,7 @@ Vt=oplus_{si}(Vt^{si}=oplus_{si}(Vt'^{si}\otimes I_{2si+1})
 return {U^{si}},{S^{si}},{Vt^{si}},{vals_spin_rep}
 """
 #TODO:check the case for left_legs!=[1,2,...,]
-function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
+function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows;larrow=-1)
     right_legs=setdiff(collect(1:ndims(T)),left_legs)
     rl=1:length(left_legs)
     rr=1:length(right_legs)
@@ -43,8 +43,8 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
     vals_spin_rep=[]
 
     for si=0:0.5:max_spin
-        ML=spin_singlet_space_from_cg([spin_reps[left_legs]...,[si]],[-arrows[left_legs]...,-1])*sqrt(2*si+1)
-        MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[-arrows[right_legs]...,1])*sqrt(2*si+1)
+        ML=spin_singlet_space_from_cg([spin_reps[left_legs]...,[si]],[-arrows[left_legs]...,larrow])*sqrt(2*si+1)
+        MR=spin_singlet_space_from_cg([spin_reps[right_legs]...,[si]],[-arrows[right_legs]...,-larrow])*sqrt(2*si+1)
         if ML==[] || MR==[] continue end
 
         Tsi=jcontract([ML[[Colon() for i=rl]...,1,:],T,MR[[Colon() for i=rr]...,1,:]],[[rl...,-1],leg_order,[(length(left_legs)+rr)...,-2]])
@@ -58,7 +58,7 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows)
         append!(vals_spin_rep,si*ones(length(svd_res[:S])))
 
         #check spin symmetric
-        MU=spin_singlet_space_from_cg([spin_reps[left_legs]...,si*ones(length(svd_res[:S]))],[arrows[left_legs]...,1])
+        MU=spin_singlet_space_from_cg([spin_reps[left_legs]...,si*ones(length(svd_res[:S]))],[arrows[left_legs]...,-larrow])
         @show si,vecnorm(Us[end]-sym_tensor_proj(Us[end],MU))
     end
 

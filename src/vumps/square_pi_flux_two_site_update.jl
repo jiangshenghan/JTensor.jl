@@ -36,7 +36,7 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin,chi_spin; 
     A2c=sym_tensor_proj(A2c,MA2c)
 
     #get spin symmetric svd
-    Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1])
+    Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1],larrow=1)
     svals=vcat(Ss...)
     svals/=max(svals...)
     #Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
