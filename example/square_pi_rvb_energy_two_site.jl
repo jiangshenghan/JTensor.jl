@@ -3,7 +3,8 @@ using JTensor
 
 chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
-maxiter=500
+dchi=[2]
+maxiter=[100 100]
 println("chi=",chi)
 println("chi spins: ",chi_spin)
 println("maxiter=",maxiter)
@@ -40,8 +41,6 @@ DD=D^2
 TTu=[permutedims(reshape(jcontract([T[i],conj(T[i])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4]) for i=1:2]
 
 #spin symmetric subspace
-#MA=spin_sym_space([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
-#MC=spin_sym_space([chi_spin,chi_spin],[1,-1])
 MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
 MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
 MA=reshape(MA,chi,chi,DD,size(MA)[end])
@@ -49,6 +48,40 @@ MA=reshape(MA,chi,chi,DD,size(MA)[end])
 #symmetry transformation
 #D=3 case
 if D==3
+    T_spin_rep=[0.5,0]
     W=[0 1 0; -1 0 0; 0 0 1]
 end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
+
+srand()
+Alu=complex(rand(chi,chi,DD))
+Alu=[Alu,Alu]
+Aru=Alu
+Acu=Alu
+Cu=complex(rand(chi,chi))
+Cu=[Cu,Cu]
+err=1e-12
+
+for k=1:length(maxiter)
+    for iter=1:maxiter[k]
+        Alu,Aru,Acu,Cu,_,_,_,_=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+        Alu[1]=sym_tensor_proj(Alu[1],MA)
+        Aru[1]=sym_tensor_proj(Aru[1],MA)
+        Acu[1]=sym_tensor_proj(Acu[1],MA)
+        Cu[1]=sym_tensor_proj(Cu[1],MC)
+        Alu=[Alu[1],Alu[1]]
+        Aru=[Aru[1],Aru[1]]
+        Acu=[Acu[1],Acu[1]]
+        Cu=[Cu[1],Cu[1]]
+
+        #lower imps by symmetry
+        Ald=[jcontract([Alu[i],WW],[[-1,-2,1],[1,-3]]) for i=1:2]
+
+        @printf("iter=%d\n",iter)
+        square_heisenberg(Alu,Ald,T)
+        println()
+    end
+    if k==length(maxiter) break end
+    Alu,Aru,_,_,Fl,Fr,_,_=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+    Alu,Aru,chi,chi_spin=square_pi_flux_spin_sym_two_site_update(TTu,Fl,Fr,dchi[k],T_spin_rep,chi_spin)
+end

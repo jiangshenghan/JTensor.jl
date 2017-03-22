@@ -35,9 +35,11 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,dchi,T_spin_rep,chi_sp
     svals=vcat(Ss...)
     map(U->reshape(U,chi,DD,chi*DD),Us)
     map(Vt->reshape(Vt,chi*DD,chi,DD),Vts)
+
     vals_order=sortperm(svals,rev=true)
     while svals[vals_order[chi+dchi+1]]/svals[vals_order[chi+dchi]]>cut_ratio dchi+=1 end
     vals_order=vals_order[1:chi+dchi]
+
     smin,smax=min(vals_spin_rep),max(vals_spin_rep)
     vals_spin_rep_final=[]
     for s=smin:0.5:smax
