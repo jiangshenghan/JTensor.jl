@@ -4,7 +4,7 @@ using JTensor
 chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 dchi=[2]
-maxiter=[100 100]
+maxiter=[50 50]
 println("chi=",chi)
 println("chi spins: ",chi_spin)
 println("maxiter=",maxiter)
@@ -73,6 +73,8 @@ for k=1:length(maxiter)
         Aru=[Aru[1],Aru[1]]
         Acu=[Acu[1],Acu[1]]
         Cu=[Cu[1],Cu[1]]
+
+        svd_spin_sym_tensor(Cu[1],[1],[chi_spin,chi_spin],[1,-1])
 
         #lower imps by symmetry
         Ald=[jcontract([Alu[i],WW],[[-1,-2,1],[1,-3]]) for i=1:2]
