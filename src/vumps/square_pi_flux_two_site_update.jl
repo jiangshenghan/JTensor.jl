@@ -88,13 +88,13 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
         #fixing gauge using posqr
         Al_block=Al[1][:,oind:oind+odeg-1,:]
         Ql=direct_sum(posqr(reshape(permutedims(Al_block,[2,3,1]),odeg,chi*DD))[1],diagm(ones(ndeg-odeg)))
-        Ql_update=posqr(reshape(permutedims(Al_block_update,[2,3,1]),ndeg,(chi+dchi)*DD))[1]
+        Ql_update=posqr(reshape(permutedims(Al_block_update,[2,3,1]),ndeg,chi*DD))[1]
         Wl=Ql*Ql_update'
         Al_block_update=jcontract([Al_block_update,Wl],[[-1,1,-3],[-2,1]])
 
         Ar_block=Ar[1][oind:oind+odeg-1,:,:]
         Qr=direct_sum(posqr(reshape(Ar_block,odeg,chi*DD))[1],diagm(ones(ndeg-odeg)))
-        Qr_update=posqr(reshape(Ar_block_update,ndeg,(chi+dchi)*DD))
+        Qr_update=posqr(reshape(Ar_block_update,ndeg,chi*DD))[1]
         Wr=Qr*Qr_update'
         Ar_block_update=jcontract([Wr,Ar_block_update],[[-1,1],[1,-2,-3]])
 
@@ -112,8 +112,7 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
         iter+=1
     end
 
-    #Al_update=reshape(Al_update,chi+dchi,chi+dchi,DD)
-    #Ar_update=reshape(Ar_update,chi+dchi,chi+dchi,DD)
+    @show vecnorm(Al_update[npos,npos,:]-Al[1])
 
     Al_update=[Al_update,Al_update]
     Ar_update=[Ar_update,Ar_update]
