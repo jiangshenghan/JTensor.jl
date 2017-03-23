@@ -9,6 +9,18 @@ function polardecomp(X)
     return U*V',V*diagm(S)*V'
 end
 
+"""
+positive qr decomposition
+return Q,R
+"""
+function posqr(X)
+    Q,R=qr(X)
+    s=diagm(sign(diag(R)));
+    Q=Q*s
+    R=s*R
+    return Q,R
+end
+
 
 """
 svd decomposition for spin symmetric tensor
