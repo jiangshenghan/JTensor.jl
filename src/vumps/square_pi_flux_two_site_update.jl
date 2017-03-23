@@ -39,8 +39,8 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
     Us,Ss,Vts,val_spin=svd_spin_sym_tensor(A2c,[1,2,3],[chi_spin,T_spin,T_spin,chi_spin,T_spin,T_spin],[1,1,-1,-1,1,-1],larrow=1)
     svals=vcat(Ss...)
     svals/=max(svals...)
-    #Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
-    #Vts=map(Vt->reshape(Vt,div(length(Vt),chi*DD),chi,DD),Vts)
+    Us=map(U->reshape(U,chi,DD,div(length(U),chi*DD)),Us)
+    Vts=map(Vt->reshape(Vt,div(length(Vt),chi*DD),chi,DD),Vts)
 
     vals_order=sortperm(svals,rev=true)
     while svals[vals_order[chi+dchi+1]]/svals[vals_order[chi+dchi]]>cut_ratio dchi+=1 end
@@ -58,83 +58,62 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
     @show chi_spin,chi_spin_final
 
     #update Al and Ar
-    Al_update=zeros(elemtype,chi+dchi,chi+dchi,D,D)
-    Ar_update=zeros(elemtype,chi+dchi,chi+dchi,D,D)
+    Al_update=zeros(elemtype,chi+dchi,chi+dchi,DD)
+    Ar_update=zeros(elemtype,chi+dchi,chi+dchi,DD)
 
     #get position of original indices in the increased bond
-    ninds=[]
+    npos=[]
     ind=1
     for s in spin_list
         odeg=count(x->x==s,chi_spin)*Int(2s+1)
         ndeg=count(x->x==s,chi_spin_final)*Int(2s+1)
-        append!(ninds,collect(ind:ind+odeg-1))
+        append!(npos,collect(ind:ind+odeg-1))
         ind=ind+ndeg
-        @show odeg,ndeg,ninds
+        @show odeg,ndeg,npos
     end
 
-    iter=ind=1
+    iter=oind=nind=1
     for s in spin_list
-        deg=count(x->x==s,chi_spin_final)*Int(2s+1)
-        @show s,iter,ind,deg
+        odeg=count(x->x==s,chi_spin)*Int(2s+1)
+        ndeg=count(x->x==s,chi_spin_final)*Int(2s+1)
+        @show s,iter,oind,nind,odeg,ndeg
         @show size(Us[iter]),size(Vts[iter])
-        if deg==0 
+        if ndeg==0 
             iter+=1
             continue 
         end
-        Al_update[ninds,ind:ind+deg-1,:,:]=permutedims(Us[iter][:,:,:,1:deg],[1,4,2,3])
-        Ar_update[ind:ind+deg-1,ninds,:,:]=Vts[iter][1:deg,:,:,:]
+        Al_block_update=permutedims(Us[iter][:,:,1:ndeg],[1,3,2])
+        Ar_block_update=Vts[iter][1:ndeg,:,:]
 
-        #fixing gauge
+        #fixing gauge using posqr
+        Al_block=Al[1][:,oind:oind+odeg-1,:]
+        Ql=direct_sum(posqr(reshape(permutedims(Al_block,[2,3,1]),odeg,chi*DD))[1],diagm(ones(ndeg-odeg)))
+        Ql_update=posqr(reshape(permutedims(Al_block_update,[2,3,1]),ndeg,(chi+dchi)*DD))[1]
+        Wl=Ql*Ql_update'
+        Al_block_update=jcontract([Al_block_update,Wl],[[-1,1,-3],[-2,1]])
+
+        Ar_block=Ar[1][oind:oind+odeg-1,:,:]
+        Qr=direct_sum(posqr(reshape(Ar_block,odeg,chi*DD))[1],diagm(ones(ndeg-odeg)))
+        Qr_update=posqr(reshape(Ar_block_update,ndeg,(chi+dchi)*DD))
+        Wr=Qr*Qr_update'
+        Ar_block_update=jcontract([Wr,Ar_block_update],[[-1,1],[1,-2,-3]])
+
+        Al_update[npos,nind:nind+ndeg-1,:]=Al_block_update
+        Ar_update[nind:nind+ndeg-1,npos,:]=Ar_block_update
 
         #test
         MA=spin_singlet_space_from_cg([chi_spin_final,chi_spin_final,T_spin,T_spin],[1,-1,1,-1]) 
-        #MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
+        MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
         @show vecnorm(Al_update),vecnorm(Al_update-sym_tensor_proj(Al_update,MA))
         @show vecnorm(Ar_update),vecnorm(Ar_update-sym_tensor_proj(Ar_update,MA))
 
-        ind+=deg
+        nind+=ndeg
+        oind+=odeg
         iter+=1
     end
 
-    Al_update=reshape(Al_update,chi+dchi,chi+dchi,DD)
-    Ar_update=reshape(Ar_update,chi+dchi,chi+dchi,DD)
-
-    #fixing gauge
-    spin_list=unique(chi_spin_final)
-    Ql_temp=posqr(reshape(permutedims(Al[1],[2,3,1]),chi,chi*DD))[1]
-    oind=nind=1
-    Ql=zeros(elemtype,chi+dchi,chi+dchi)
-    for s in spin_list
-        odeg=count(x->x==s,chi_spin)*Int(2s+1)
-        ndeg=count(x->x==s,chi_spin_final)*Int(2s+1)
-        @show odeg,ndeg
-        Ql[nind:nind+odeg-1,nind:nind+odeg-1]=Ql_temp[oind:oind+odeg-1,oind:oind+odeg-1]
-        Ql[nind+odeg:nind+ndeg-1,nind+odeg:nind+ndeg-1]=diagm(ones(ndeg-odeg))
-        oind+=odeg
-        nind+=ndeg
-    end
-    Ql_update=posqr(reshape(permutedims(Al_update,[2,3,1]),chi+dchi,(chi+dchi)*DD))[1]
-    Wl=Ql*Ql_update'
-    @show Ql_temp
-    @show Ql
-    @show Ql_update
-    Al_update=jcontract([Al_update,Wl],[[-1,1,-3],[-2,1]])
-
-    Qr_temp=posqr(reshape(Ar[1],chi,chi*DD))[1]
-    oind=nind=1
-    Qr=zeros(elemtype,chi+dchi,chi+dchi)
-    for s in spin_list
-        odeg=count(x->x==s,chi_spin)*Int(2s+1)
-        ndeg=count(x->x==s,chi_spin_final)*Int(2s+1)
-        Qr[nind:nind+odeg-1,nind:nind+odeg-1]=Qr_temp[oind:oind+odeg-1,oind:oind+odeg-1]
-        Qr[nind+odeg:nind+ndeg-1,nind+odeg:nind+ndeg-1]=diagm(ones(ndeg-odeg))
-        oind+=odeg
-        nind+=ndeg
-    end
-    Qr_update=posqr(reshape(Al_update,chi+dchi,(chi+dchi)*DD))[1]
-    Wr=Qr*Qr_update'
-    Ar_update=jcontract([Wr,Ar_update],[[-1,1],[1,-2,-3]])
-
+    #Al_update=reshape(Al_update,chi+dchi,chi+dchi,DD)
+    #Ar_update=reshape(Ar_update,chi+dchi,chi+dchi,DD)
 
     Al_update=[Al_update,Al_update]
     Ar_update=[Ar_update,Ar_update]
