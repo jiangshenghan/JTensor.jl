@@ -69,8 +69,16 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
     end
 
     #update Al by adding small random tensor
-    Al_update=1e-3*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
-    Ar_update=1e-3*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
+    MA=spin_singlet_space_from_cg([chi_spin_final,chi_spin_final,T_spin,T_spin],[1,-1,1,-1]) 
+    MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
+
+    Al_update=1e-3*vecnorm(Al[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
+    Al_update=sym_tensor_proj(Al_update,MA)
+    @show vecnorm(Al[1]),vecnorm(Al_update)
+
+    Ar_update=1e-3*vecnorm(Ar[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
+    Ar_update=sym_tensor_proj(Ar_update,MA)
+
     Al_update[npos,npos,:]+=Al[1]
     Ar_update[npos,npos,:]+=Ar[1]
 
