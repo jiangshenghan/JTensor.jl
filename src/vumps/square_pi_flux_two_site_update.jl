@@ -15,7 +15,7 @@ T_spin are for spin rep for a virtual leg of single layer PEPS tensor T
 arrows for A2c: 1,1,-1,-1,1,1,-1
 arrows for TT: 1,-1,-1,1
 
-returns(Al_update,Ar_update,chi+dchi,chi_spin_final)
+returns(Al_update,Ar_update,chi+dchi,chi_spin_final,Fl,Fr)
 """
 function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_spin; A2c=[],cut_ratio=0.99,e0=1e-12,elemtype=Complex128,ncv=20)
     chi=size(Fl[1],1)
@@ -72,12 +72,14 @@ function square_pi_flux_spin_sym_two_site_update(TT,Fl,Fr,Al,Ar,dchi,T_spin,chi_
     MA=spin_singlet_space_from_cg([chi_spin_final,chi_spin_final,T_spin,T_spin],[1,-1,1,-1]) 
     MA=reshape(MA,chi+dchi,chi+dchi,DD,size(MA)[end]) 
 
-    Al_update=1e-3*vecnorm(Al[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
-    Al_update=sym_tensor_proj(Al_update,MA)
-    @show vecnorm(Al[1]),vecnorm(Al_update)
+    Al_update=zeros(elemtype,chi+dchi,chi+dchi,DD)
+    Ar_update=zeros(elemtype,chi+dchi,chi+dchi,DD)
+    #Al_update=1e-3*vecnorm(Al[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
+    #Al_update=sym_tensor_proj(Al_update,MA)
+    #@show vecnorm(Al[1]),vecnorm(Al_update)
 
-    Ar_update=1e-3*vecnorm(Ar[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
-    Ar_update=sym_tensor_proj(Ar_update,MA)
+    #Ar_update=1e-3*vecnorm(Ar[1])*svals[vals_order[chi+1]]/svals[vals_order[chi]]*rand(elemtype,chi+dchi,chi+dchi,DD)
+    #Ar_update=sym_tensor_proj(Ar_update,MA)
 
     Al_update[npos,npos,:]+=Al[1]
     Ar_update[npos,npos,:]+=Ar[1]
