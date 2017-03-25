@@ -62,6 +62,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
         leig_res=eigs(leftlm,nev=nev,v0=Fl[l0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λl,vl=leig_res
+        @show λl
         λl=λl[1]
         vl=vl[:,1]
         err_Fl=1-abs(dot(vl[:],Fl[l0][:]))/(norm(vl[:])*norm(Fl[l0][:]))
@@ -94,6 +95,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
         reig_res=eigs(rightlm,nev=nev,v0=Fr[r0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λr,vr=reig_res
+        @show λr
         λr=λr[1]
         vr=vr[:,1]
         err_Fr=1-abs(dot(vr[:],Fr[r0][:]))/(norm(vr[:])*norm(Fr[r0][:]))
