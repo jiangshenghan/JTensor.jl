@@ -142,6 +142,8 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[1,3,2]),chi*Dv,chi))
             UC,PC=polardecomp(C[is])
             Al[is]=permutedims(reshape(UAc*UC',chi,Dv,chi),[1,3,2])
+            @show rank(UAc),rank(PAc)
+            @show rank(UC),rank(PC)
 
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[2,3,1]),chi*Dv,chi))
             UC,PC=polardecomp(transpose(C[is==1?N:is-1]))
