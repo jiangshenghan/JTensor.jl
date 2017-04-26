@@ -65,8 +65,8 @@ for k=1:length(maxiter)
 
     #spin symmetric subspace
     MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
-    MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
     MA=reshape(MA,chi,chi,DD,size(MA)[end])
+    MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
 
     @show vecnorm(Alu[1]-sym_tensor_proj(Alu[1],MA))
     @show vecnorm(Aru[1]-sym_tensor_proj(Aru[1],MA))

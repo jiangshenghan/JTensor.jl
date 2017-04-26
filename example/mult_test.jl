@@ -53,30 +53,55 @@ DD=D^2
 TTu=[permutedims(reshape(jcontract([T[i],conj(T[i])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4]) for i=1:2]
 
 
-A=rand(Complex128,6,6,DD)
-A_update=zeros(Complex128,8,8,DD)
-A_update[1:6,1:6,:]=A
-A=[A,A]
-A_update=[A_update,A_update]
-mult_test(A,TTu)
-mult_test(A_update,TTu)
-
-FA=rand(Complex128,6,DD,6)
-FA_update=zeros(Complex128,8,DD,8)
-FA_update[1:6,:,1:6]=FA
-FA=[FA,FA]
-FA_update=[FA_update,FA_update]
 println("chi=6")
-Al,Ar,Ac,C,Fl,Fr=sl_mult_vumps_par(TTu,6,A,A,[],[],FA,FA,e0=1e-12,maxiter=2)
+#Al,Ar,Ac,C,Fl,Fr=sl_mult_vumps_par(TTu,6,Al,Ar,Ac,C,Fl,Fr,e0=1e-12,maxiter=50)
+A=rand(Complex128,6,6,DD)
+Al=[A,A]
+Ar=[A,A]
+Al,Ar,Ac,C,Fl,Fr=sl_mult_vumps_par(TTu,6,Al,Ar,e0=1e-12,maxiter=50)
 @show vecnorm(Fl[1]),vecnorm(Fl[2])
 @show vecnorm(Fr[1]),vecnorm(Fr[2])
 @show vecnorm(Ac[1]),vecnorm(Ac[2])
+
 println("chi=8")
-Al,Ar,Ac,C,Fl,Fr=sl_mult_vumps_par(TTu,8,A_update,A_update,[],[],FA_update,FA_update,maxiter=2,e0=1e-12)
-@show vecnorm(Fl[1]),vecnorm(Fl[1][1:6,:,1:6])
-@show vecnorm(Fl[2]),vecnorm(Fl[2][1:6,:,1:6])
-@show vecnorm(Fr[1]),vecnorm(Fr[1][1:6,:,1:6])
-@show vecnorm(Fr[2]),vecnorm(Fr[2][1:6,:,1:6])
-@show vecnorm(Ac[1]),vecnorm(Ac[1][1:6,1:6,:])
-@show vecnorm(Ac[2]),vecnorm(Ac[2][1:6,1:6,:])
-@show vecnorm(Al[1]),vecnorm(Al[1][1:6,1:6,:])
+A_update=zeros(Complex128,8,8,DD)
+Al_update=[A_update,A_update]
+Ar_update=[A_update,A_update]
+Ac_update=[A_update,A_update]
+C_update=zeros(Complex128,8,8)
+C_update=[C_update,C_update]
+F_update=zeros(Complex128,8,DD,8)
+Fl_update=[F_update,F_update]
+Fr_update=[F_update,F_update]
+for i=1:2
+    Al_update[i][1:6,1:6,:]=Al[i]
+    Ar_update[i][1:6,1:6,:]=Ar[i]
+    Ac_update[i][1:6,1:6,:]=Ac[i]
+    C_update[i][1:6,1:6]=C[i] 
+    Fl_update[i][1:6,:,1:6]=Fl[i]
+    Fr_update[i][1:6,:,1:6]=Fr[i]
+end
+for iter=1:10
+    Al_update,Ar_update,Ac_update,C_update,Fl_update,Fr_update=sl_mult_vumps_par(TTu,8,Al_update,Ar_update,Ac_update,C_update,Fl_update,Fl_update,maxiter=1,e0=1e-12)
+    @show vecnorm(Fl_update[1]),vecnorm(Fl_update[1][1:6,:,1:6])
+    @show vecnorm(Fl_update[2]),vecnorm(Fl_update[2][1:6,:,1:6])
+    @show vecnorm(Fr_update[1]),vecnorm(Fr_update[1][1:6,:,1:6])
+    @show vecnorm(Fr_update[2]),vecnorm(Fr_update[2][1:6,:,1:6])
+    @show vecnorm(Ac_update[1]),vecnorm(Ac_update[1][1:6,1:6,:])
+    @show vecnorm(Ac_update[2]),vecnorm(Ac_update[2][1:6,1:6,:])
+    @show vecnorm(C_update[1]),vecnorm(C_update[1][1:6,1:6])
+    @show vecnorm(C_update[2]),vecnorm(C_update[2][1:6,1:6])
+    @show vecnorm(Al_update[1]),vecnorm(Al_update[1][1:6,1:6,:])
+    @show vecnorm(Al_update[2]),vecnorm(Al_update[2][1:6,1:6,:])
+    println("\n")
+end
+
+#=
+@show vecnorm(Fl_update[1][1:6,:,1:6]-Fl[1])
+@show vecnorm(Fl_update[2][1:6,:,1:6]-Fl[2])
+@show vecnorm(Fr_update[1][1:6,:,1:6]-Fr[1])
+@show vecnorm(Fr_update[2][1:6,:,1:6]-Fr[2])
+@show vecnorm(C_update[1][1:6,1:6,:]-C[1])
+@show vecnorm(Ac_update[1][1:6,1:6,:]-Ac[1])
+@show vecnorm(Al_update[1][1:6,1:6,:]-Al[1])
+=#

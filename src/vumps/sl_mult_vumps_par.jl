@@ -41,7 +41,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
     errFE=err_Fl=err_Fr=err_Ac=err_C=err_Al=err_Ar=err=e0
 
     for iter=1:maxiter
-        #left fix point
+        #left fix point Fl
         l0=1
         left_tensor_list=[]
         left_legs_list=[]
@@ -74,7 +74,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             Fl[il]=vl/vecnorm(vl)
         end
 
-        #right fixed point
+        #right fixed point Fr
         r0=N
         right_tensor_list=[]
         right_legs_list=[]
@@ -109,6 +109,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
 
         @printf("iteration %d, eig mult info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n ",iter,leig_res[4],leig_res[5],reig_res[4],reig_res[5])
 
+        #obtain Ac and C
         err_Ac=err_C=0
         λAcC=1.;
         for ic=1:N
@@ -137,13 +138,13 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             println(svals)
         end
 
+
+        #obtain Al and Ar
         err_Al=err_Ar=0
         for is=1:N
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[1,3,2]),chi*Dv,chi))
             UC,PC=polardecomp(C[is])
             Al[is]=permutedims(reshape(UAc*UC',chi,Dv,chi),[1,3,2])
-            @show rank(UAc),rank(PAc)
-            @show rank(UC),rank(PC)
 
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[2,3,1]),chi*Dv,chi))
             UC,PC=polardecomp(transpose(C[is==1?N:is-1]))
