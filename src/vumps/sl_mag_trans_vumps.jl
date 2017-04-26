@@ -31,7 +31,8 @@ parallel algorithm is implemented
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
-function sl_mag_trans_vumps(T,chi,Al=[],Ar=[],Ac=[],Fl=[],Fr=[],Jc;ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
+function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
+
     #initialization
     Dh,Dv=size(T,1,3)
 
@@ -110,7 +111,7 @@ function sl_mag_trans_vumps(T,chi,Al=[],Ar=[],Ac=[],Fl=[],Fr=[],Jc;ep=1e-12,e0=1
         @show iter,λl,λr,λAc/λC
         @show errFE,err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar
 
-        if err<ep break
+        if err<ep break end
     end
 
     return Al,Ar,Ac,C,Fl,Fr,free_energy,err
