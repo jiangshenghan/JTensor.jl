@@ -1,8 +1,8 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi=[11]
-maxiter=[100]
+chi=[6,8]
+maxiter=[30,50]
 println("chi=")
 println(chi)
 println("maxiter=")
@@ -57,28 +57,40 @@ end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
 #initilize
-#Au=[reshape(jcontract([T[i],conj(T[i])],[[1,-1,2,-3,-5],[1,-2,2,-4,-6]]),DD,DD,DD) for i=1:2]
-Au=[reshape(eye(Complex128,D),1,1,DD) for i=1:2]
-Bu=Cu=[]
-#symmetry
+Cu=[]
+Alu=[]
+Aru=[]
+Acu=[]
+Flu=[]
+Fru=[]
+err=1e-12
 
 for counti=1:length(chi)
     @printf("counti=%d,\n chi=%d,\n maxiter=%d\n",counti,chi[counti],maxiter[counti])
-    #using iTEBD to get initial state
-    for iter=1:3
-        Hlu=Hru=jcontract([eye(Complex128,size(Au[1],1)),eye(Complex128,DD)],[[-1,-3],[-2,-4]])
-        Bu,Cu=sl_mult_mpo_mps(Au,TTu,chi[counti],Hlu,Hru)
-        #Au=[jcontract([diagm(sqrt(Cu[3-i])),Bu[i],diagm(sqrt(Cu[i]))],[[-1,1],[1,2,-3],[2,-2]]) for i=1:2]
-        Au=[jcontract([Bu[i],diagm(Cu[i])],[[-1,2,-3],[2,-2]]) for i=1:2]
-    end
-    chi[counti]=size(Cu[2],1)
-    Cu=[complex(diagm(Cu[2])) for i=1:2]
-    Alu=[jcontract([Cu[2],Bu[1]],[[-1,1],[1,-2,-3]]) for i=1:2]
-    Aru=[jcontract([Bu[2],Cu[2]],[[-1,1,-3],[1,-2]]) for i=1:2]
-    Acu=[jcontract([Alu[2],Cu[2]],[[-1,1,-3],[1,-2]]) for i=1:2]
 
-    #Flu=Fru=[reshape(jcontract([eye(Complex128,chi[counti]),eye(Complex128,D)],[[-1,-4],[-2,-3]]),chi[counti],DD,chi[counti]) for i=1:2]
-    err=1.
+    if counti>1
+
+        A_update=zeros(Complex128,chi[counti],chi[counti],DD)
+        A_update[1:chi[counti-1],1:chi[counti-1],:]=Alu[1]
+        Alu=[A_update,A_update]
+        A_update[1:chi[counti-1],1:chi[counti-1],:]=Aru[1]
+        Aru=[A_update,A_update]
+        A_update[1:chi[counti-1],1:chi[counti-1],:]=Acu[1]
+        Acu=[A_update,A_update]
+
+        C_update=zeros(Complex128,chi[counti],chi[counti])
+        C_update[1:chi[counti-1],1:chi[counti-1],:]=Cu[1]
+        Cu=[C_update,C_update]
+
+        #=
+        F_update=[zeros(Complex128,chi[counti],DD,chi[counti]) for i=1:2]
+        for i=1:2 F_update[i][1:chi[counti-1],:,1:chi[counti-1]]=Flu[i] end
+        Flu=F_update
+        for i=1:2 F_update[i][1:chi[counti-1],:,1:chi[counti-1]]=Fru[i] end
+        Fru=F_update
+        ## =#
+    end
+
 
     #VUMPS to obtain energy
     for iter=1:maxiter[counti]
@@ -96,9 +108,6 @@ for counti=1:length(chi)
         square_heisenberg(Alu,Ald,T)
     end
 
-    #update Au for itebd
-    Au=Alu
-    println()
 end
 
 

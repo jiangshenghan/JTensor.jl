@@ -24,6 +24,7 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
     @printf("chi=%d, ep=%e, e0=%e \n",chi,ep,e0)
 
     #initialization
+    nev=2
     N=size(T,1)
     Dh,Dv=size(T[1],1,3)
     @printf("N=%d, Dh=%d, Dv=%d \n",N,Dh,Dv)
@@ -59,17 +60,18 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             append!(left_legs_list,legs_list_il)
         end
         leftlm=LinearMap(left_tensor_list,left_legs_list,1,elemtype=elemtype)
-        leig_res=eigs(leftlm,nev=1,v0=Fl[l0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+        leig_res=eigs(leftlm,nev=nev,v0=Fl[l0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λl,vl=leig_res
+        @show λl
         λl=λl[1]
         vl=vl[:,1]
         err_Fl=1-abs(dot(vl[:],Fl[l0][:]))/(norm(vl[:])*norm(Fl[l0][:]))
-        Fl[l0]=reshape(vl[:],chi,Dh,chi)
+        Fl[l0]=reshape(vl[:]/vecnorm(vl),chi,Dh,chi)
         for jl=1+l0:N+l0-1
             il=(jl-1)%N+1
             vl=jcontract([Fl[il==1?N:il-1],Al[il==1?N:il-1],T[il==1?N:il-1],conj(Al[il==1?N:il-1])],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
             err_Fl=max(err_Fl,1-abs(dot(vl[:],Fl[il][:]))/(norm(vl[:])*norm(Fl[il][:])))
-            Fl[il]=vl
+            Fl[il]=vl/vecnorm(vl)
         end
 
         #right fixed point
@@ -91,17 +93,18 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             append!(right_legs_list,legs_list_ir)
         end
         rightlm=LinearMap(right_tensor_list,right_legs_list,1,elemtype=elemtype)
-        reig_res=eigs(rightlm,nev=1,v0=Fr[r0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+        reig_res=eigs(rightlm,nev=nev,v0=Fr[r0][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
         λr,vr=reig_res
+        @show λr
         λr=λr[1]
         vr=vr[:,1]
         err_Fr=1-abs(dot(vr[:],Fr[r0][:]))/(norm(vr[:])*norm(Fr[r0][:]))
-        Fr[r0]=reshape(vr[:],chi,Dh,chi)
+        Fr[r0]=reshape(vr[:]/vecnorm(vr),chi,Dh,chi)
         for jr=r0-1:-1:r0-N+1
             ir=(jr+N-1)%N+1
             vr=jcontract([Fr[ir==N?1:ir+1],Ar[ir==N?1:ir+1],T[ir==N?1:ir+1],conj(Ar[ir==N?1:ir+1])],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
             err_Fr=max(err_Fr,1-abs(dot(vr[:],Fr[ir][:]))/(norm(vr[:])*norm(Fr[ir][:])))
-            Fr[ir]=vr
+            Fr[ir]=vr/vecnorm(vr)
         end
 
         @printf("iteration %d, eig mult info: \n lniter=%d, lnmult=%d \n rniter=%d, rnmult=%d \n ",iter,leig_res[4],leig_res[5],reig_res[4],reig_res[5])
@@ -110,16 +113,20 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
         λAcC=1.;
         for ic=1:N
             Aclm=LinearMap([Fl[ic],Ac[ic],T[ic],Fr[ic]],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]],2,elemtype=elemtype)
-            Aceig_res=eigs(Aclm,nev=1,v0=Ac[ic][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+            Aceig_res=eigs(Aclm,nev=nev,v0=Ac[ic][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λAc,vAc=Aceig_res
+            @show λAc
             λAc=λAc[1]
+            vAc=vAc[:,1]
             err_Ac=max(err_Ac,1-abs(dot(vAc[:],Ac[ic][:]))/(norm(vAc[:])*norm(Ac[ic][:])))
             Ac[ic]=reshape(vAc[:],chi,chi,Dv)
 
             Clm=LinearMap([Fl[ic==N?1:ic+1],C[ic],Fr[ic]],[[1,2,-1],[1,3],[3,2,-2]],2,elemtype=elemtype)
-            Ceig_res=eigs(Clm,nev=1,v0=C[ic][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
+            Ceig_res=eigs(Clm,nev=nev,v0=C[ic][:],tol=max(ep/100,err/100,1e-15),ncv=ncv)
             λC,vC=Ceig_res
+            @show λC
             λC=λC[1]
+            vC=vC[:,1]
             err_C=max(err_C,1-abs(dot(vC[:],C[ic][:]))/(norm(vC[:])*norm(C[ic][:])))
             C[ic]=reshape(vC[:],chi,chi)
 
@@ -135,6 +142,8 @@ function sl_mult_vumps_par(T,chi,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[1,3,2]),chi*Dv,chi))
             UC,PC=polardecomp(C[is])
             Al[is]=permutedims(reshape(UAc*UC',chi,Dv,chi),[1,3,2])
+            @show rank(UAc),rank(PAc)
+            @show rank(UC),rank(PC)
 
             UAc,PAc=polardecomp(reshape(permutedims(Ac[is],[2,3,1]),chi*Dv,chi))
             UC,PC=polardecomp(transpose(C[is==1?N:is-1]))

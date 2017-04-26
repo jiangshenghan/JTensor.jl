@@ -2,9 +2,13 @@ include("../src/JTensor.jl")
 using JTensor
 
 chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
+<<<<<<< HEAD
+=======
+#chi_spin=[0,0,0.5,0.5]
+>>>>>>> c89269f70bf1cd52524aeb5551753256e4dc4348
 chi=Int(sum(x->2x+1,chi_spin))
-dchi=[2]
-maxiter=[10,50]
+dchi=[2,2,2]
+maxiter=[50,50,50,50]
 println("chi=",chi)
 println("chi spins: ",chi_spin)
 println("maxiter=",maxiter)
@@ -71,9 +75,12 @@ for k=1:length(maxiter)
     @show vecnorm(Aru[1]-sym_tensor_proj(Aru[1],MA))
 
     for iter=1:maxiter[k]
-        Alu,Aru,Acu,Cu,_,_,_,_=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+        Alu,Aru,Acu,Cu,_,_,_,err=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+        @show vecnorm(Alu[1]-sym_tensor_proj(Alu[1],MA))
         Alu[1]=sym_tensor_proj(Alu[1],MA)
         Aru[1]=sym_tensor_proj(Aru[1],MA)
+        @show jcontract([Alu[1],conj(MA)],[[1,2,3],[1,2,3,-1]])
+        @show jcontract([Aru[1],conj(MA)],[[1,2,3],[1,2,3,-1]])
         Acu[1]=sym_tensor_proj(Acu[1],MA)
         Cu[1]=sym_tensor_proj(Cu[1],MC)
         Alu=[Alu[1],Alu[1]]
@@ -91,9 +98,11 @@ for k=1:length(maxiter)
         @printf("iter=%d\n",iter)
         square_heisenberg(Alu,Ald,T)
         println()
+        
+        if err<1e-8 break end
     end
     if k==length(maxiter) break end
     Alu,Aru,Acu,Cu,Fl,Fr,_,_=sl_mult_vumps_par(TTu,chi,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
-    Alu,Aru,chi,chi_spin=square_pi_flux_spin_sym_two_site_update(TTu,Fl[1],Fr[2],dchi[k],virt_spin,chi_spin)
+    Alu,Aru,chi,chi_spin=square_pi_flux_spin_sym_two_site_update(TTu,Fl,Fr,Alu,Aru,dchi[k],virt_spin,chi_spin)
     println()
 end
