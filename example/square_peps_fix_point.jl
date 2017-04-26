@@ -12,6 +12,8 @@ Jc=diagm(Jc)
 @show chi
 @show chi_spin
 @show maxiter
+println()
+flush(STDOUT)
 
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
@@ -71,10 +73,13 @@ Aru=sym_tensor_proj(Aru,MA)
 Acu=sym_tensor_proj(Acu,MA)
 Cu=sym_tensor_proj(Cu,MC)
 
+Fl=[]
+Fr=[]
+
 err=1e-12
 
 for iter=1:maxiter
-    Alu,Aru,Acu,Cu=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,e0=err/10,maxiter=1,ncv=20)
+    Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=20)
     Alu=sym_tensor_proj(Alu,MA)
     Aru=sym_tensor_proj(Aru,MA)
     Acu=sym_tensor_proj(Acu,MA)

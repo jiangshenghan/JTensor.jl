@@ -55,9 +55,9 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
 
         #left fix point
         leftlm=LinearMap([Fl,Jc,Al,T,conj(Al)],[[1,2,3],[1,4],[4,-1,5],[2,-2,5,6],[3,-3,6]],1,elemtype=elemtype)
-        λl,vl,_,liter,lnmult=eigs(leftlm,nev=nev,v0=Fl[:],tol=max(ep/100,err/200,1e-15))
+        λl,vl,_,lniter,lnmult=eigs(leftlm,nev=nev,v0=Fl[:],tol=max(ep/100,err/200,1e-15))
         @show λl
-        @show liter,lnmult
+        @show lniter,lnmult
         λl=λl[1]
         vl=vl[:,1]
         err_Fl=1-abs(dot(vl[:],Fl[:]))/(norm(vl[:])*norm(Fl[:]))
@@ -65,8 +65,9 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
 
         #right fix point
         rightlm=LinearMap([Fr,Jc,Ar,T,conj(Ar)],[[1,2,3],[4,1],[-1,4,5],[-2,2,5,6],[-3,3,6]],1,elemtype=elemtype)
-        λr,vr=eigs(rightlm,nev=nev,v0=Fr[:],tol=max(ep/100,err/200,1e-15))
+        λr,vr,_,rniter,rnmult=eigs(rightlm,nev=nev,v0=Fr[:],tol=max(ep/100,err/200,1e-15))
         @show λr
+        @show rniter,rnmult
         λr=λr[1]
         vr=vr[:,1]
         err_Fr=1-abs(dot(vr[:],Fr[:]))/(norm(vr[:])*norm(Fr[:]))
@@ -75,8 +76,9 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
 
         #obtain Ac
         Aclm=LinearMap([Fl,Jc,Ac,T,Jc,Fr],[[1,2,-1],[1,3],[3,5,4],[2,6,4,-3],[5,7],[7,6,-2]],3,elemtype=elemtype)
-        λAc,vAc=eigs(Aclm,nev=nev,v0=Ac[:],tol=max(ep/100,err/200,1e-15))
+        λAc,vAc,_,Acniter,Acnmult=eigs(Aclm,nev=nev,v0=Ac[:],tol=max(ep/100,err/200,1e-15))
         @show λAc
+        @show Acniter,Acnmult
         λAc=λAc[1]
         vAc=vAc[:,1]
         err_Ac=1-abs(dot(vAc[:],Ac[:]))/(norm(vAc[:])*norm(Ac[:]))
@@ -84,8 +86,9 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
 
         #obtain C
         Clm=LinearMap([Fl,C,Jc,Fr],[[1,2,-1],[1,3],[3,4],[4,2,-2]],2,elemtype=elemtype)
-        λC,vC=eigs(Clm,nev=nev,v0=C[:],tol=max(ep/100,err/200,1e-15))
+        λC,vC,_,Cniter,Cnmult=eigs(Clm,nev=nev,v0=C[:],tol=max(ep/100,err/200,1e-15))
         @show λC
+        @show Cniter,Cnmult
         λC=λC[1]
         vC=vC[:,1]
         err_C=1-abs(dot(vC[:],C[:]))/(norm(vC[:])*norm(C[:]))
@@ -119,6 +122,7 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
         @show λr
         @show λAc/λC
         @show errFE,err_Fl,err_Fr,err_Ac,err_C,err_Al,err_Ar
+        @show err
         println()
         flush(STDOUT)
 
