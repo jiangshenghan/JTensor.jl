@@ -31,7 +31,7 @@ parallel algorithm is implemented
 
 returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
 """
-function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20)
+function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20,nev=1)
 
     #initialization
     Dh,Dv=size(T,1,3)
@@ -50,9 +50,6 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
     @show Dh,Dv
 
     for iter=1:maxiter
-        #no. of eigs to solve
-        nev=2
-
         #left fix point
         leftlm=LinearMap([Fl,Jc,Al,T,conj(Al)],[[1,2,3],[1,4],[4,-1,5],[2,-2,5,6],[3,-3,6]],1,elemtype=elemtype)
         λl,vl,_,lniter,lnmult=eigs(leftlm,nev=nev,v0=Fl[:],tol=max(ep/100,err/200,1e-15))

@@ -2,19 +2,21 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
+chi_spin=[0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5,0.5,1.0,1.0,1.0,1.0]
 chi=Int(sum(x->2x+1,chi_spin))
-maxiter=100
+maxiter=300
 
 Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
 Jc=diagm(Jc)
 
 @show chi
 @show chi_spin
+@show diag(Jc)
 @show maxiter
 println()
 flush(STDOUT)
 
+#=
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
 T[1][1,2,3,3,3]=1
@@ -36,7 +38,13 @@ T[2][1,3,3,3,2]=1
 T[2][2,3,3,3,1]=-1
 
 virt_spin=[0.5,0]
+# =#
 
+#pi rvb D=6
+T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
+T=[T[:,1],T[:,2]]
+T=[reshape(T[i],2,6,6,6,6) for i=1:2]
+virt_spin=[0,0.5,1]
 
 D=size(T[1],2)
 DD=D^2
@@ -79,7 +87,7 @@ Fr=[]
 err=1e-12
 
 for iter=1:maxiter
-    Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=20)
+    Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
     Alu=sym_tensor_proj(Alu,MA)
     Aru=sym_tensor_proj(Aru,MA)
     Acu=sym_tensor_proj(Acu,MA)
@@ -92,5 +100,10 @@ for iter=1:maxiter
     square_heisenberg([Alu,Alu],[Ald,Ald],T)
     println()
     flush(STDOUT)
+    
+    if iter%20==0 
+        Fl=[]
+        Fr=[]
+    end
 end
 
