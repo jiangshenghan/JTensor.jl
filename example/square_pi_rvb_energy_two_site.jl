@@ -2,7 +2,6 @@ include("../src/JTensor.jl")
 using JTensor
 
 chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
-#chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 dchi=[2,2,2]
 maxiter=[50,50,50,50]
