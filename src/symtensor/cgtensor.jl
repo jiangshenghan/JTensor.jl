@@ -119,6 +119,9 @@ end
 """
 input spin_reps and arrows
 generating spin singlet tensor basis M
+M has n+1 legs, where n=size(spin_reps,1)
+the last leg denotes different fusion channels
+
 return singlet_basis
 """
 function spin_singlet_space_from_cg(spin_reps,arrows)
@@ -192,6 +195,9 @@ function spin_singlet_space_from_cg(spin_reps,arrows)
     return singlet_basis
 end
 
+"""
+spin reps can be either positive or negative, indicating representation or conjugate representation
+"""
 function spin_singlet_space_from_cg(spin_reps)
     nlegs=size(spin_reps,1)
     legs_dims=[sum(x->Int(2*abs(x)+1),spin_reps[i]) for i=1:nlegs]

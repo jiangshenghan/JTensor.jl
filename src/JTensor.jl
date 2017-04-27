@@ -3,7 +3,8 @@ module JTensor
 
 import GSL
 
-export jcontract, LinearMap, polardecomp, spin_sym_space, spin_singlet_space_from_cg, sym_tensor_proj, svd_spin_sym_tensor
+export jcontract, LinearMap, polardecomp 
+export spin_sym_space, spin_singlet_space_from_cg, sym_tensor_proj, svd_spin_sym_tensor,spin_sym_tensor_null_space
 export sl_one_vumps, sl_two_vumps, sl_mult_vumps_par, sl_mag_trans_vumps, dl_one_vumps, dl_two_vumps, dl_mult_vumps_seq, square_pi_flux_spin_sym_two_site_update
 export sl_mult_mpo_mps, dl_mult_mpo_mps
 export square_heisenberg
@@ -11,8 +12,11 @@ export square_heisenberg
 include("jcontract.jl")
 include("linearmap.jl")
 include("matdecomp.jl")
-include("symtensor.jl")
-include("cgtensor.jl")
+
+include("symtensor/symtensor.jl")
+include("symtensor/cgtensor.jl")
+include("symtensor/spin_symtensor_svd.jl")
+include("symtensor/symtensor_null_space.jl")
 
 include("vumps/sl_one_vumps.jl")
 include("vumps/sl_two_vumps.jl")
