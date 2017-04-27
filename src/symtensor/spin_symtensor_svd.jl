@@ -12,6 +12,9 @@ U=oplus_{si}(U^{si})=oplus_{si}(U'^{si}\otimes I_{2si+1})
 S=oplus_{si}(S^{si})=oplus_{si}(S'^{si}\otimes I_{2si+1})
 Vt=oplus_{si}(Vt^{si}=oplus_{si}(Vt'^{si}\otimes I_{2si+1})
 
+leg order for U: left_legs...,Sl_leg
+leg order for V: Sr_leg, right_legs...
+
 vals_spin_rep is spin reps for singular values
 spin_species[i]=s[i]
 
@@ -43,6 +46,7 @@ function svd_spin_sym_tensor(T,left_legs,spin_reps,arrows;larrow=-1,thin=true)
         if ML==[] || MR==[] 
             if thin==false
                 append!(spin_species,si)
+                push!(Ss,[])
                 if ML==[] 
                     push!(Us,ML)
                 else 
