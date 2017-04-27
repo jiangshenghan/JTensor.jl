@@ -16,7 +16,7 @@ include("matdecomp.jl")
 include("symtensor/symtensor.jl")
 include("symtensor/cgtensor.jl")
 include("symtensor/spin_symtensor_svd.jl")
-include("symtensor/symtensor_null_space.jl")
+include("symtensor/symtensor_nullspace.jl")
 
 include("vumps/sl_one_vumps.jl")
 include("vumps/sl_two_vumps.jl")
