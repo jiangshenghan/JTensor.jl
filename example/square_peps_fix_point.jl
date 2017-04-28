@@ -2,7 +2,7 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
+chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 inc_spin_no=[2]
 maxiter=[50,100]
@@ -115,6 +115,8 @@ for inci=0:length(inc_spin_no)
 
     if inci==0 continue end
     A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
+    @show svd(Cu)[2]
+    @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
     Alu,Aru,chi,chi_spin=spin_sym_dlmps_incD(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
     updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
