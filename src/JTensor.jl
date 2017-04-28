@@ -15,7 +15,7 @@ include("matdecomp.jl")
 
 include("symtensor/symtensor.jl")
 include("symtensor/cgtensor.jl")
-include("symtensor/spin_symtensor_svd.jl")
+include("symtensor/symtensor_svd.jl")
 include("symtensor/symtensor_nullspace.jl")
 
 include("vumps/sl_one_vumps.jl")
@@ -25,6 +25,7 @@ include("vumps/sl_mag_trans_vumps.jl")
 include("vumps/dl_one_vumps.jl")
 include("vumps/dl_two_vumps.jl")
 include("vumps/dl_mult_vumps_seq.jl")
+include("vumps_two-site_update.jl")
 include("vumps/square_pi_flux_two_site_update.jl")
 
 include("itebd/sl_mult_mpo_mps.jl")
