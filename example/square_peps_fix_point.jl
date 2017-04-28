@@ -2,21 +2,18 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5,0.5,1.0,1.0,1.0,1.0]
+chi_spin=[0,0,0,0,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
-maxiter=300
-
-Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
-Jc=diagm(Jc)
+inc_spin_no=[2]
+maxiter=[50,100]
 
 @show chi
 @show chi_spin
-@show diag(Jc)
 @show maxiter
 println()
 flush(STDOUT)
 
-#=
+# #=
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
 T[1][1,2,3,3,3]=1
@@ -40,11 +37,13 @@ T[2][2,3,3,3,1]=-1
 virt_spin=[0.5,0]
 # =#
 
+#=
 #pi rvb D=6
 T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
 T=[T[:,1],T[:,2]]
 T=[reshape(T[i],2,6,6,6,6) for i=1:2]
 virt_spin=[0,0.5,1]
+# =#
 
 D=size(T[1],2)
 DD=D^2
@@ -86,24 +85,48 @@ Fr=[]
 
 err=1e-12
 
-for iter=1:maxiter
-    Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
-    Alu=sym_tensor_proj(Alu,MA)
-    Aru=sym_tensor_proj(Aru,MA)
-    Acu=sym_tensor_proj(Acu,MA)
-    Cu=sym_tensor_proj(Cu,MC)
+for inci=0:length(inc_spin_no)
 
-    #lower imps by symmetry
-    Ald=jcontract([Alu,WW],[[-1,-2,1],[1,-3]])
+    Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
+    Jc=diagm(Jc)
+    @show inci
+    @show diagm(Jc)
 
-    @show iter
-    square_heisenberg([Alu,Alu],[Ald,Ald],T)
-    println()
-    flush(STDOUT)
-    
-    if iter%20==0 
-        Fl=[]
-        Fr=[]
+    for iter=1:maxiter[inci+1]
+        Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
+        Alu=sym_tensor_proj(Alu,MA)
+        Aru=sym_tensor_proj(Aru,MA)
+        Acu=sym_tensor_proj(Acu,MA)
+        Cu=sym_tensor_proj(Cu,MC)
+
+        #lower imps by symmetry
+        Ald=jcontract([Alu,WW],[[-1,-2,1],[1,-3]])
+
+        @show iter
+        square_heisenberg([Alu,Alu],[Ald,Ald],T)
+        println()
+        flush(STDOUT)
+
+        if iter%20==0 
+            Fl=[]
+            Fr=[]
+        end
     end
+
+    if inci==0 continue end
+    A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
+    Alu,Aru,chi,chi_spin=spin_sym_dlmps_incD(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
+    updated_Cu=zeros(eltype(Cu),chi,chi)
+    updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
+    Cu=updated_Cu
+    Acu=jcontract([Alu,Cu],[[-1,1,-3],[1,-2]])
+    Fl=[]
+    Fr=[]
+
+    #spin symmetric subspace
+    MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+    MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+    MA=reshape(MA,chi,chi,DD,size(MA)[end])
+
 end
 

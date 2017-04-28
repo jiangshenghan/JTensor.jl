@@ -5,7 +5,7 @@ import GSL
 
 export jcontract, LinearMap, polardecomp 
 export spin_sym_space, spin_singlet_space_from_cg, sym_tensor_proj, svd_spin_sym_tensor,spin_sym_tensor_nullspace
-export sl_one_vumps, sl_two_vumps, sl_mult_vumps_par, sl_mag_trans_vumps, dl_one_vumps, dl_two_vumps, dl_mult_vumps_seq, square_pi_flux_spin_sym_two_site_update
+export sl_one_vumps, sl_two_vumps, sl_mult_vumps_par, sl_mag_trans_vumps, dl_one_vumps, dl_two_vumps, dl_mult_vumps_seq, square_pi_flux_spin_sym_two_site_update, spin_sym_dlmps_incD
 export sl_mult_mpo_mps, dl_mult_mpo_mps
 export square_heisenberg
 

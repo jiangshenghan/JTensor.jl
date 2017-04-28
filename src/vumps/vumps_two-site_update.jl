@@ -27,18 +27,18 @@ For spin symmetric dl MPS, given Al,Ar,A2c, obtain updated Al',Ar',C' with incre
       |   |
 
 where U/Vt is cut to chi*(chi+dchi)/(chi+dchi)*chi, and dchi should be chosen to perserve spin deg
-We should keep track of spin_reps. Here pspin_rep stores spin reps for a single physical spin. For dlmps, one tensor contains two physical spins
+We should keep track of spin_reps. Here pspin stores spin reps for a single physical spin. For dlmps, one tensor contains two physical spins
 
 updated:
 updated_Al= Al (Nl^*)U    updated_Ar= Ar       0    updated_C= C 0
             0  0                      Vt(Nr^*) 0               0 0
 
-return updated_Al,updated_Ar,updated_chi,updated_vspin_rep
+return updated_Al,updated_Ar,updated_chi,updated_chi_spin
 """
-function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin_rep,vspin_rep,Aarrows)
-    D=Int(sum(x->2x+1,pspin_rep))
-    chi=Int(sum(x->2x+1,vspin_rep))
-    Aspin_reps=[vspin_rep,vspin_rep,pspin_rep,pspin_rep]
+function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
+    D=Int(sum(x->2x+1,pspin))
+    chi=Int(sum(x->2x+1,chi_spin))
+    Aspin_reps=[chi_spin,chi_spin,pspin,pspin]
 
     #obtain null space
     Nl,lspin_rep=spin_sym_tensor_nullspace(reshape(Al,chi,chi,D,D),[2],Aspin_reps,Aarrows,null_leg_arrow=-1)
@@ -51,12 +51,13 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin_rep,vspin_rep,Aarrows)
     #SVD & keep only largest svals to get new spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
     Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=-1)
-    #svals are singular value without deg
-    svals=Float64[]
+    #svals_unique are singular value without spin deg
+    svals_unique=Float64[]
     for i=1:length(spin_species)
-        append(svals,SS[i][1:Int(2*spin_species[i]+1):length(SS[i])])
+        append!(svals_unique,SS[i][1:Int(2*spin_species[i]+1):length(SS[i])])
     end
-    inc_spin_rep=sort(vals_spin_rep(sortperm(svals)[1:inc_spin_no]))
+    @show svals_unique
+    inc_spin_rep=sort(vals_spin_rep(sortperm(svals_unique,rev=true)[1:inc_spin_no]))
     inc_chi=Int(sum(x->2x+1),inc_spin_rep)
     U=zeros(eltype(Us[1]),size(Us[1],1),inc_chi)
     Vt=zeros(eltype(Vts[1]),inc_chi,size(Vts[1],2))
@@ -71,11 +72,16 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin_rep,vspin_rep,Aarrows)
     end
     @show inc_spin_rep
     #TODO:check U,Vt correctness
+    svals_unique=sort(svals_unique,rev=true)
+    svals=[]
+    for s in inc_spin_rep append!(svals,svals_unique*ones(Int(2s+1))) end
+    @show vecnorm(proj_A2c-U.svals.Vt)
 
     #update MPS
-    updated_vspin_rep=append(vspin_rep,inc_spin_rep)
-    updated_chi=Int(sum(x->2x+1,updated_vspin_rep))
-    @show updated_vspin_rep,updated_chi
+    updated_chi_spin=append!(chi_spin,inc_spin_rep)
+    updated_chi=Int(sum(x->2x+1,updated_chi_spin))
+    @show updated_chi_spin,updated_chi
+
     updated_Al=zeros(eltype(Al),dchi,dchi,DD)
     updated_Al[1:chi,1:chi,:]=Al
     updated_Al[1:chi,chi+1:updated_chi,:]=jcontract([conj(Nl),U],[[-1,-3,1],[1,-2]])
@@ -83,8 +89,11 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin_rep,vspin_rep,Aarrows)
     updated_Ar[1:chi,1:chi,:]=Ar
     updated_Ar[chi+1:updated_chi,1:chi,:]=jcontract([Vt,conj(Nr)],[[-1,1],[-2,-3,1]])
 
-    #TODO:check updated_Al/r spin symmetric
-    MA=
+    #check updated_Al/r spin symmetric
+    MA=spin_singlet_space_from_cg([updated_chi_spin,updated_chi_spin,pspin,pspin],Aarrows)
+    MA=reshape(MA,updated_chi,updated_chi,D^2,size(MA)[end])
+    @show vecnorm(sym_tensor_proj(updated_Al,MA)-updated_Al)
+    @show vecnorm(sym_tensor_proj(updated_Ar,MA)-updated_Ar)
 
-    return updated_Al,updated_Ar,updated_chi,updated_vspin_rep
+    return updated_Al,updated_Ar,updated_chi,updated_chi_spin
 end
