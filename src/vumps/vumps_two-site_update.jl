@@ -48,27 +48,43 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin_rep,vspin_rep,Aarrows)
     @show lspin_rep,rspin_rep
     if lspin!=rspin error("incorrect null spin reps") end
 
-    #SVD & cutoff to get new spin reps 
+    #SVD & keep only largest svals to get new spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
-    Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=-1);
-    vals=Float64[]
-    vals=...
-    U=...
-    Vt=...
-    inc_spin_rep=vals_spin_rep(sortperm(vals)[1:inc_spin_no])
+    Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=-1)
+    #svals are singular value without deg
+    svals=Float64[]
+    for i=1:length(spin_species)
+        append(svals,SS[i][1:Int(2*spin_species[i]+1):length(SS[i])])
+    end
+    inc_spin_rep=sort(vals_spin_rep(sortperm(svals)[1:inc_spin_no]))
+    inc_chi=Int(sum(x->2x+1),inc_spin_rep)
+    U=zeros(eltype(Us[1]),size(Us[1],1),inc_chi)
+    Vt=zeros(eltype(Vts[1]),inc_chi,size(Vts[1],2))
+    ind=1
+    for i=1:length(spin_species)
+        ni=count(x->x==spin_species[i],inc_spin_rep)
+        if ni==0 continue end
+        vec_range=1:ni*(2*spin_species[i]+1)
+        U[:,ind+vec_range]=Us[i][:,vec_range]
+        Vt[ind+vec_range,:]=Vt[i][vec_range,:]
+        ind+=vec_range[end]
+    end
     @show inc_spin_rep
-    @show vecnorm(proj_A2c-U.diagm(vals).Vt)
+    #TODO:check U,Vt correctness
 
     #update MPS
     updated_vspin_rep=append(vspin_rep,inc_spin_rep)
     updated_chi=Int(sum(x->2x+1,updated_vspin_rep))
     @show updated_vspin_rep,updated_chi
     updated_Al=zeros(eltype(Al),dchi,dchi,DD)
-    updated_Al[1:chi,1:chi,;]=Al
-    updated_Al[1:chi,chi+1:updated_chi,;]=jcontract([conj(Nl),U],[[-1,-3,1],[1,-2]])
+    updated_Al[1:chi,1:chi,:]=Al
+    updated_Al[1:chi,chi+1:updated_chi,:]=jcontract([conj(Nl),U],[[-1,-3,1],[1,-2]])
     updated_Ar=zeros(eltype(Ar),dchi,dchi,DD)
-    updated_Ar[1:chi,1:chi,;]=Ar
-    updated_Ar[chi+1:updated_chi,1:chi,;]=jcontract([Vt,conj(Nr)],[[-1,1],[-2,-3,1]])
+    updated_Ar[1:chi,1:chi,:]=Ar
+    updated_Ar[chi+1:updated_chi,1:chi,:]=jcontract([Vt,conj(Nr)],[[-1,1],[-2,-3,1]])
+
+    #TODO:check updated_Al/r spin symmetric
+    MA=
 
     return updated_Al,updated_Ar,updated_chi,updated_vspin_rep
 end
