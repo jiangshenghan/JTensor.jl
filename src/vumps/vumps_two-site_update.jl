@@ -47,7 +47,7 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     Nl=reshape(Nr,chi,D^2,size(Nr,4))
     @show lspin_rep
     @show rspin_rep
-    if lspin!=rspin error("incorrect null spin reps") end
+    if lspin_rep!=rspin_rep error("incorrect null spin reps") end
 
     #SVD on the new basis & keep only largest svals to get updated spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])

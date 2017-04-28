@@ -47,7 +47,7 @@ virt_spin=[0,0.5,1]
 
 D=size(T[1],2)
 DD=D^2
-TTu=[permutedims(reshape(jcontract([T[i],conj(T[i])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4]) for i=1:2]
+TTu=permutedims(reshape(jcontract([T[1],conj(T[1])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4])
 
 
 #spin symmetric subspace
@@ -85,15 +85,15 @@ Fr=[]
 
 err=1e-12
 
-for inci=0:length(inc_spin_no)
+for inci=1:length(inc_spin_no)+1
 
     Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
     Jc=diagm(Jc)
     @show inci
-    @show diagm(Jc)
+    @show diag(Jc)
 
-    for iter=1:maxiter[inci+1]
-        Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu[1],chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
+    for iter=1:maxiter[inci]
+        Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
         Alu=sym_tensor_proj(Alu,MA)
         Aru=sym_tensor_proj(Aru,MA)
         Acu=sym_tensor_proj(Acu,MA)
@@ -113,10 +113,18 @@ for inci=0:length(inc_spin_no)
         end
     end
 
-    if inci==0 continue end
+    if inci>length(inc_spin_no) break end
     A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
-    @show svd(Cu)[2]
-    @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
+    Csvals=svd(Cu)[2];
+    @show Csvals/max(Csvals...)
+    A2csvals=svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
+    @show A2csvals/max(A2csvals...)
+    @show jcontract([Alu,conj(MA)],[[1,2,3],[1,2,3,-1]])
+    @show jcontract([Aru,conj(MA)],[[1,2,3],[1,2,3,-1]])
+    MA2c=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin,virt_spin,virt_spin],[1,-1,1,-1,1,-1])
+    MA2c=reshape(MA2c,chi,chi,DD,DD,size(MA2c)[end])
+    @show jcontract([A2c,conj(MA2c)],[[1,2,3,4],[1,2,3,4,-1]])
+
     Alu,Aru,chi,chi_spin=spin_sym_dlmps_incD(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
     updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
@@ -127,8 +135,8 @@ for inci=0:length(inc_spin_no)
 
     #spin symmetric subspace
     MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
-    MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
     MA=reshape(MA,chi,chi,DD,size(MA)[end])
+    MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
 
 end
 
