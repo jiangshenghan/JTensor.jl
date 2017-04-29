@@ -52,23 +52,27 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
 
     #SVD on the new basis & keep only largest svals to get updated spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
-    @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*D^2,chi*D^2))[2]
-    @show size(proj_A2c)
-    @show svd(proj_A2c)[2]
-    Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=-1)
+    Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=Aarrows[1])
     #svals_unique are singular value without spin deg
     svals_unique=Float64[]
     for i=1:length(spin_species)
         append!(svals_unique,Ss[i][1:Int(2*spin_species[i]+1):length(Ss[i])])
     end
+    svals_ordered=sort(svals_unique,rev=true)
+    while svals_ordered[inc_spin_no]*0.8<svals_ordered[inc_spin_no+1]
+        inc_spin_no+=1 
+    end
+    @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*D^2,chi*D^2))[2]
+    @show svals_ordered
+    @show inc_spin_no
     inc_spin_rep=sort(vals_spin_rep[sortperm(svals_unique,rev=true)[1:inc_spin_no]])
     inc_chi=Int(sum((x->2x+1),inc_spin_rep))
-    @show svals_unique
     @show inc_spin_rep,inc_chi
 
     #get new spin basis stored in U and Vt
     U=zeros(eltype(Us[1]),size(Us[1],1),inc_chi)
     Vt=zeros(eltype(Vts[1]),inc_chi,size(Vts[1],2))
+    svals_remain=zeros(eltype(Ss[1]),inc_chi)
     ind=1
     for i=1:length(spin_species)
         ni=count(x->x==spin_species[i],inc_spin_rep)
@@ -76,11 +80,15 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
         vec_range=1:Int(ni*(2*spin_species[i]+1))
         U[:,ind+vec_range-1]=Us[i][:,vec_range]
         Vt[ind+vec_range-1,:]=Vts[i][vec_range,:]
+        svals_remain[ind+vec_range-1,:]=Ss[i][vec_range]
         ind+=vec_range[end]
     end
 
     #TODO:check U,Vt correctness
-    #@show vecnorm(proj_A2c-U.svals.Vt)
+    MU=spin_singlet_space_from_cg([lspin_rep,inc_spin_rep],[-1,-Aarrows[1]])
+    MV=spin_singlet_space_from_cg([inc_spin_rep,rspin_rep],[Aarrows[1],1])
+    @show vecnorm(sym_tensor_proj(U,MU)-U)
+    @show vecnorm(sym_tensor_proj(Vt,MV)-Vt)
 
     #update MPS
     updated_chi_spin=append!(chi_spin,inc_spin_rep)
@@ -99,6 +107,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     MA=reshape(MA,updated_chi,updated_chi,D^2,size(MA)[end])
     @show vecnorm(sym_tensor_proj(updated_Al,MA)-updated_Al)
     @show vecnorm(sym_tensor_proj(updated_Ar,MA)-updated_Ar)
+    println()
 
     return updated_Al,updated_Ar,updated_chi,updated_chi_spin
 end

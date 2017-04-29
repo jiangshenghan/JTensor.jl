@@ -9,7 +9,7 @@ using JTensor
 
 chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
-inc_spin_no=2
+inc_spin_no=4
 virt_spin=[0.5,0]
 D=Int(sum((x->2x+1),virt_spin))
 DD=D^2

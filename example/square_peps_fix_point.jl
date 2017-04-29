@@ -4,8 +4,8 @@ using JTensor
 
 chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
-inc_spin_no=[2]
-maxiter=[50,100]
+inc_spin_no=[3]
+maxiter=[50,50]
 
 @show chi
 @show chi_spin
@@ -125,7 +125,7 @@ for inci=1:length(inc_spin_no)+1
     MA2c=reshape(MA2c,chi,chi,DD,DD,size(MA2c)[end])
     @show jcontract([A2c,conj(MA2c)],[[1,2,3,4],[1,2,3,4,-1]])
 
-    Alu,Aru,chi,chi_spin=spin_sym_dlmps_incD(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
+    Alu,Aru,chi,chi_spin=spin_sym_dlmps_inc_chi(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
     updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
     Cu=updated_Cu
