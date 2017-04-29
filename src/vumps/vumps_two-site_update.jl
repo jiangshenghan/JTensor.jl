@@ -75,7 +75,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
         if ni==0 continue end
         vec_range=1:Int(ni*(2*spin_species[i]+1))
         U[:,ind+vec_range-1]=Us[i][:,vec_range]
-        Vt[ind+vec_range,:]=Vt[i][vec_range,:]
+        Vt[ind+vec_range-1,:]=Vts[i][vec_range,:]
         ind+=vec_range[end]
     end
 
@@ -87,10 +87,10 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     updated_chi=Int(sum(x->2x+1,updated_chi_spin))
     @show updated_chi_spin,updated_chi
 
-    updated_Al=zeros(eltype(Al),updated_chi,updated_chi,DD)
+    updated_Al=zeros(eltype(Al),updated_chi,updated_chi,D^2)
     updated_Al[1:chi,1:chi,:]=Al
     updated_Al[1:chi,chi+1:updated_chi,:]=jcontract([conj(Nl),U],[[-1,-3,1],[1,-2]])
-    updated_Ar=zeros(eltype(Ar),updated_chi,updated_chi,DD)
+    updated_Ar=zeros(eltype(Ar),updated_chi,updated_chi,D^2)
     updated_Ar[1:chi,1:chi,:]=Ar
     updated_Ar[chi+1:updated_chi,1:chi,:]=jcontract([Vt,conj(Nr)],[[-1,1],[-2,-3,1]])
 
