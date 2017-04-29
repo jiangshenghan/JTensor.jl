@@ -35,7 +35,7 @@ updated_Al= Al (Nl^*)U    updated_Ar= Ar       0    updated_C= C 0
 
 return updated_Al,updated_Ar,updated_chi,updated_chi_spin
 """
-function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
+function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     D=Int(sum(x->2x+1,pspin))
     chi=Int(sum(x->2x+1,chi_spin))
     Aspin_reps=[chi_spin,chi_spin,pspin,pspin]
@@ -44,26 +44,29 @@ function spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     Nl,lspin_rep=spin_sym_tensor_nullspace(reshape(Al,chi,chi,D,D),[2],Aspin_reps,Aarrows,null_leg_arrow=-1)
     Nr,rspin_rep=spin_sym_tensor_nullspace(reshape(Ar,chi,chi,D,D),[1],Aspin_reps,Aarrows,null_leg_arrow=1)
     Nl=reshape(Nl,chi,D^2,size(Nl,4))
-    Nl=reshape(Nr,chi,D^2,size(Nr,4))
+    Nr=reshape(Nr,chi,D^2,size(Nr,4))
     @show lspin_rep
     @show rspin_rep
+    @show size(Nl),size(Nr)
     if lspin_rep!=rspin_rep error("incorrect null spin reps") end
 
     #SVD on the new basis & keep only largest svals to get updated spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
     @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*D^2,chi*D^2))[2]
+    @show size(proj_A2c)
     @show svd(proj_A2c)[2]
     Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=-1)
     #svals_unique are singular value without spin deg
     svals_unique=Float64[]
     for i=1:length(spin_species)
-        append!(svals_unique,SS[i][1:Int(2*spin_species[i]+1):length(SS[i])])
+        append!(svals_unique,Ss[i][1:Int(2*spin_species[i]+1):length(Ss[i])])
     end
-    inc_spin_rep=sort(vals_spin_rep(sortperm(svals_unique,rev=true)[1:inc_spin_no]))
+    inc_spin_rep=sort(vals_spin_rep[sortperm(svals_unique,rev=true)[1:inc_spin_no]])
+    inc_chi=Int(sum((x->2x+1),inc_spin_rep))
     @show svals_unique
-    @show vals_spin_rep
-    @show inc_spin_rep
-    inc_chi=Int(sum(x->2x+1),inc_spin_rep)
+    @show inc_spin_rep,inc_chi
+
+    #get new spin basis stored in U and Vt
     U=zeros(eltype(Us[1]),size(Us[1],1),inc_chi)
     Vt=zeros(eltype(Vts[1]),inc_chi,size(Vts[1],2))
     ind=1

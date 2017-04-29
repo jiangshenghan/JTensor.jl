@@ -13,14 +13,14 @@ legs order of NT: right_legs...,null_leg
 return NT,null_leg_spin_rep
 """
 function spin_sym_tensor_nullspace(T,left_legs,spin_reps,arrows;null_leg_arrow=1)
-    NT=[]
-    null_leg_spin_rep=[]
+    NT=eltype(T)[]
+    null_leg_spin_rep=Float64[]
 
     #perform svd on T
     Us,Ss,Vts,_,spin_species=svd_spin_sym_tensor(T,left_legs,spin_reps,arrows,larrow=-null_leg_arrow,thin=false)
 
     for i=1:length(spin_species)
-        @show size(Vts[i])
+        #@show size(Vts[i])
         if Vts[i]==[] continue end
         if Ss[i]==[]
             NTi=permutedims(conj(Vts[i]),[2:ndims(Vts[i])...,1])
@@ -35,13 +35,14 @@ function spin_sym_tensor_nullspace(T,left_legs,spin_reps,arrows;null_leg_arrow=1
         append!(NT,NTi)
         nflavor=div(size(Vts[i],1)-indstart+1,Int(2*spin_species[i]+1))
         append!(null_leg_spin_rep,spin_species[i]*ones(nflavor))
-        @show Ss[i]
+        #@show Ss[i]
     end
 
     right_legs=setdiff(collect(1:ndims(T)),left_legs)
     NT=reshape(NT,size(T,right_legs...)...,div(length(NT),prod(size(T,right_legs...))))
     @show size(NT)
 
+    #=
     #check null space
     T_legs_no=zeros(Int,ndims(T))
     for (ind,leg) in enumerate(left_legs) T_legs_no[leg]=-ind end
@@ -51,6 +52,7 @@ function spin_sym_tensor_nullspace(T,left_legs,spin_reps,arrows;null_leg_arrow=1
     #check orthonormal
     P=jcontract([conj(NT),NT],[[1:length(right_legs)...,-1],[1:length(right_legs)...,-2]])
     @show diag(P),vecnorm(P)-sqrt(size(P,1))
+    =#
 
     return NT,null_leg_spin_rep
 end

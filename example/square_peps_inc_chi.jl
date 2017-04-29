@@ -11,7 +11,12 @@ chi_spin=[0,0,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 inc_spin_no=2
 virt_spin=[0.5,0]
+D=Int(sum((x->2x+1),virt_spin))
+DD=D^2
 Aarrows=[1,-1,1,-1]
+@show chi_spin
+@show inc_spin_no
+println()
 
 MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],Aarrows)
 MA=reshape(MA,chi,chi,DD,size(MA)[end])
@@ -23,4 +28,12 @@ Al=jcontract([MA,Alvec],[[-1,-2,-3,1],[1]])
 Ar=jcontract([MA,Arvec],[[-1,-2,-3,1],[1]])
 A2c=jcontract([MA2c,A2cvec],[[-1,-2,-3,-4,1],[1]])
 
-spin_sym_dlmps_incD(Al,Ar,A2c,inc_spin_no,virt_spin,chi_spin,Aarrows)
+#=
+@show jcontract([Al,conj(Al)],[[1,-1,2],[1,-2,2]])
+@show jcontract([Ar,conj(Ar)],[[-1,1,2],[-2,1,2]])
+A2csvals=svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
+@show A2csvals/max(A2csvals...)
+flush(STDOUT)
+=#
+
+spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,virt_spin,chi_spin,Aarrows)
