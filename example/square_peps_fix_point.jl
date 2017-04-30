@@ -114,17 +114,18 @@ for inci=1:length(maxiter)
         end
     end
 
-    if inci>length(inc_spin_no) break end
-    A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
-    Csvals=svd(Cu)[2];
-    @show Csvals/max(Csvals...)
-    A2csvals=svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
-    @show A2csvals/max(A2csvals...)
     @show jcontract([Alu,conj(MA)],[[1,2,3],[1,2,3,-1]])
     @show jcontract([Aru,conj(MA)],[[1,2,3],[1,2,3,-1]])
+
+    if inci>length(inc_spin_no) break end
+    A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
+    #=
+    A2csvals=svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
+    @show A2csvals/max(A2csvals...)
     MA2c=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin,virt_spin,virt_spin],[1,-1,1,-1,1,-1])
     MA2c=reshape(MA2c,chi,chi,DD,DD,size(MA2c)[end])
     @show jcontract([A2c,conj(MA2c)],[[1,2,3,4],[1,2,3,4,-1]])
+    =#
 
     Alu,Aru,chi,chi_spin=spin_sym_dlmps_inc_chi(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
