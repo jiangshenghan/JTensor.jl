@@ -59,14 +59,15 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
         append!(svals_unique,Ss[i][1:Int(2*spin_species[i]+1):length(Ss[i])])
     end
     svals_ordered=sort(svals_unique,rev=true)
-    while svals_ordered[inc_spin_no]*0.8<svals_ordered[inc_spin_no+1]
+    n0=inc_spin_no
+    while svals_ordered[inc_spin_no]*0.85<svals_ordered[inc_spin_no+1]
         inc_spin_no+=1 
     end
-    @show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*D^2,chi*D^2))[2]
-    @show svals_ordered
-    @show inc_spin_no
     inc_spin_rep=sort(vals_spin_rep[sortperm(svals_unique,rev=true)[1:inc_spin_no]])
     inc_chi=Int(sum((x->2x+1),inc_spin_rep))
+    #@show svd(reshape(permutedims(A2c,[1,3,2,4]),chi*D^2,chi*D^2))[2]
+    @show svals_ordered[1:inc_spin_no]
+    @show inc_spin_no
     @show inc_spin_rep,inc_chi
 
     #get new spin basis stored in U and Vt
@@ -84,11 +85,13 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
         ind+=vec_range[end]
     end
 
-    #TODO:check U,Vt correctness
+    #=
+    #check U,Vt spin sym
     MU=spin_singlet_space_from_cg([lspin_rep,inc_spin_rep],[-1,-Aarrows[1]])
     MV=spin_singlet_space_from_cg([inc_spin_rep,rspin_rep],[Aarrows[1],1])
     @show vecnorm(sym_tensor_proj(U,MU)-U)
     @show vecnorm(sym_tensor_proj(Vt,MV)-Vt)
+    =#
 
     #update MPS
     updated_chi_spin=append!(chi_spin,inc_spin_rep)
@@ -107,6 +110,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     MA=reshape(MA,updated_chi,updated_chi,D^2,size(MA)[end])
     @show vecnorm(sym_tensor_proj(updated_Al,MA)-updated_Al)
     @show vecnorm(sym_tensor_proj(updated_Ar,MA)-updated_Ar)
+
     println()
 
     return updated_Al,updated_Ar,updated_chi,updated_chi_spin

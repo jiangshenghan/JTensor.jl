@@ -2,18 +2,15 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0,0,0.5,0.5]
+chi_spin=[0.0,0.0,0.0,0.5,0.5,0.5,1.0,1.0]
 chi=Int(sum(x->2x+1,chi_spin))
-inc_spin_no=[3]
-maxiter=[50,50]
+inc_spin_no=4*ones(Int,10)
+maxiter=200*ones(Int,11)
 
-@show chi
-@show chi_spin
-@show maxiter
 println()
 flush(STDOUT)
 
-# #=
+#=
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
 T[1][1,2,3,3,3]=1
@@ -37,7 +34,7 @@ T[2][2,3,3,3,1]=-1
 virt_spin=[0.5,0]
 # =#
 
-#=
+# #=
 #pi rvb D=6
 T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
 T=[T[:,1],T[:,2]]
@@ -83,17 +80,19 @@ Cu=sym_tensor_proj(Cu,MC)
 Fl=[]
 Fr=[]
 
-err=1e-12
+@show inc_spin_no, maxiter
 
-for inci=1:length(inc_spin_no)+1
+for inci=1:length(maxiter)
 
+    err=1
     Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
     Jc=diagm(Jc)
     @show inci
+    @show chi_spin
     @show diag(Jc)
 
     for iter=1:maxiter[inci]
-        Alu,Aru,Acu,Cu,Fl,Fr=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
+        Alu,Aru,Acu,Cu,Fl,Fr,_,err=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
         Alu=sym_tensor_proj(Alu,MA)
         Aru=sym_tensor_proj(Aru,MA)
         Acu=sym_tensor_proj(Acu,MA)
@@ -107,7 +106,9 @@ for inci=1:length(inc_spin_no)+1
         println()
         flush(STDOUT)
 
-        if iter%20==0 
+        if err<1e-10 break end
+        
+        if iter%20==0 && iter<maxiter[inci]
             Fl=[]
             Fr=[]
         end
@@ -137,6 +138,7 @@ for inci=1:length(inc_spin_no)+1
     MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
     MA=reshape(MA,chi,chi,DD,size(MA)[end])
     MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+    println()
 
 end
 
