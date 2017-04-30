@@ -2,14 +2,6 @@
 include("../src/JTensor.jl")
 using JTensor
 
-chi_spin=[0.0,0.0,0.0,0.5,0.5,0.5,1.0,1.0]
-chi=Int(sum(x->2x+1,chi_spin))
-inc_spin_no=4*ones(Int,10)
-maxiter=200*ones(Int,11)
-
-println()
-flush(STDOUT)
-
 #=
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
@@ -46,12 +38,6 @@ D=size(T[1],2)
 DD=D^2
 TTu=permutedims(reshape(jcontract([T[1],conj(T[1])],[[1,-1,-3,-5,-7],[1,-2,-4,-6,-8]]),DD,DD,DD,DD),[1,3,2,4])
 
-
-#spin symmetric subspace
-MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
-MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
-MA=reshape(MA,chi,chi,DD,size(MA)[end])
-
 #symmetry transformation
 #D=3 case
 if D==3
@@ -65,21 +51,53 @@ if D==6
 end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
-#init MPS
+
+#=
+#random init MPS Alu,Aru
+chi_spin=[0.0,0.0,0.5,0.5,1.0,1.0]
+chi=Int(sum(x->2x+1,chi_spin))
+
+#spin symmetric subspace
+MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+MA=reshape(MA,chi,chi,DD,size(MA)[end])
+
 srand()
 Alu=rand(Complex128,chi,chi,DD)
 Aru=rand(Complex128,chi,chi,DD)
-Acu=rand(Complex128,chi,chi,DD)
-Cu=rand(Complex128,chi,chi)
-
 Alu=sym_tensor_proj(Alu,MA)
 Aru=sym_tensor_proj(Aru,MA)
+
+Acu=rand(Complex128,chi,chi,DD)
 Acu=sym_tensor_proj(Acu,MA)
+Cu=rand(Complex128,chi,chi)
 Cu=sym_tensor_proj(Cu,MC)
+=#
+
+
+#init MPS from file
+chi_spin=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/chi24")[:,1]
+chi=Int(sum(x->2x+1,chi_spin))
+Alrvec=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/Alr_chi24")
+Alvec=Alrvec[:,1]+im*Alrvec[:,2]
+Arvec=Alrvec[:,3]+im*Alrvec[:,4]
+
+#spin symmetric subspace
+MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
+MA=reshape(MA,chi,chi,DD,size(MA)[end])
+MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+Alu=jcontract([MA,Alvec],[[-1,-2,-3,1],[1]])
+Aru=jcontract([MA,Arvec],[[-1,-2,-3,1],[1]])
+Acu=[]
+Cu=[]
+
 
 Fl=[]
 Fr=[]
 
+
+inc_spin_no=2*ones(Int,10)
+maxiter=100*ones(Int,11)
 @show inc_spin_no, maxiter
 
 for inci=1:length(maxiter)
@@ -97,6 +115,7 @@ for inci=1:length(maxiter)
         Aru=sym_tensor_proj(Aru,MA)
         Acu=sym_tensor_proj(Acu,MA)
         Cu=sym_tensor_proj(Cu,MC)
+        @show svd_spin_sym_tensor(Cu,[1],[chi_spin,chi_spin],[1,-1])[[2,4]]
 
         #lower imps by symmetry
         Ald=jcontract([Alu,WW],[[-1,-2,1],[1,-3]])
@@ -118,7 +137,8 @@ for inci=1:length(maxiter)
     @show jcontract([Aru,conj(MA)],[[1,2,3],[1,2,3,-1]])
 
     if inci>length(inc_spin_no) break end
-    A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
+    println("two-site algoritim to add more spins:")
+    @time A2c=mag_trans_A2c(TTu,Fl,Fr,Alu,Acu,Jc)
     #=
     A2csvals=svd(reshape(permutedims(A2c,[1,3,2,4]),chi*DD,chi*DD))[2]
     @show A2csvals/max(A2csvals...)
@@ -127,7 +147,7 @@ for inci=1:length(maxiter)
     @show jcontract([A2c,conj(MA2c)],[[1,2,3,4],[1,2,3,4,-1]])
     =#
 
-    Alu,Aru,chi,chi_spin=spin_sym_dlmps_inc_chi(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
+    @time Alu,Aru,chi,chi_spin=spin_sym_dlmps_inc_chi(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
     updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
     Cu=updated_Cu
