@@ -41,8 +41,8 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     Aspin_reps=[chi_spin,chi_spin,pspin,pspin]
 
     #obtain null space
-    @time Nl,lspin_rep=spin_sym_tensor_nullspace(reshape(Al,chi,chi,D,D),[2],Aspin_reps,Aarrows,null_leg_arrow=-1)
-    @time Nr,rspin_rep=spin_sym_tensor_nullspace(reshape(Ar,chi,chi,D,D),[1],Aspin_reps,Aarrows,null_leg_arrow=1)
+    Nl,lspin_rep=spin_sym_tensor_nullspace(reshape(Al,chi,chi,D,D),[2],Aspin_reps,Aarrows,null_leg_arrow=-1)
+    Nr,rspin_rep=spin_sym_tensor_nullspace(reshape(Ar,chi,chi,D,D),[1],Aspin_reps,Aarrows,null_leg_arrow=1)
     Nl=reshape(Nl,chi,D^2,size(Nl,4))
     Nr=reshape(Nr,chi,D^2,size(Nr,4))
     @show lspin_rep
@@ -52,8 +52,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
 
     #SVD on the new basis & keep only largest svals to get updated spin reps 
     proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
-    @time Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=Aarrows[1])
-    @time svd(proj_A2c)
+    Us,Ss,Vts,vals_spin_rep,spin_species=svd_spin_sym_tensor(proj_A2c,[1],[lspin_rep,rspin_rep],[-1,1],larrow=Aarrows[1])
     #svals_unique are singular value without spin deg
     svals_unique=Float64[]
     for i=1:length(spin_species)
@@ -61,7 +60,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     end
     svals_ordered=sort(svals_unique,rev=true)
     n0=inc_spin_no
-    while svals_ordered[inc_spin_no]*0.85<svals_ordered[inc_spin_no+1]
+    while svals_ordered[inc_spin_no]*0.9<svals_ordered[inc_spin_no+1]
         println("add more spins due to small gaps of svals!")
         inc_spin_no+=1 
     end
