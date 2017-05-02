@@ -29,7 +29,7 @@ Fl,Fr are left and right eigenvectors, with legs orders (up,middle,down)
 parallel algorithm is implemented
 
 
-returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err)
+returns (Al,Ar,Ac,C,Fl,Fr,free_energy,err,[λl,λr,λAc,λC])
 """
 function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12,e0=1e-1,maxiter=50,elemtype=Complex128,ncv=20,nev=1,λs=[])
 
@@ -55,8 +55,16 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
         λl,vl,_,lniter,lnmult=eigs(leftlm,nev=nev,v0=Fl[:],tol=max(ep/100,err/200,1e-15))
         @show λl
         @show lniter,lnmult
-        λl=λl[1]
-        vl=vl[:,1]
+        #We choose eigens close to λs=[λl0,λr0]
+        if λs==[]
+            λl=λl[1]
+            vl=vl[:,1]
+        else
+            lind=findmin(abs(λl/λs[1]-1))[2]
+            λl=λl[lind]
+            vl=vl[:,lind]
+        end
+
         err_Fl=1-abs(dot(vl[:],Fl[:]))/(norm(vl[:])*norm(Fl[:]))
         Fl=reshape(vl[:],chi,Dh,chi)
 
@@ -65,8 +73,14 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
         λr,vr,_,rniter,rnmult=eigs(rightlm,nev=nev,v0=Fr[:],tol=max(ep/100,err/200,1e-15))
         @show λr
         @show rniter,rnmult
-        λr=λr[1]
-        vr=vr[:,1]
+        if λs==[]
+            λr=λr[1]
+            vr=vr[:,1]
+        else
+            rind=findmin(abs(λr/λs[2]-1))[2]
+            λr=λr[ind]
+            vr=vr[:,ind]
+        end
         err_Fr=1-abs(dot(vr[:],Fr[:]))/(norm(vr[:])*norm(Fr[:]))
         Fr=reshape(vr[:],chi,Dh,chi)
         Fr=Fr/abs(jcontract([Fl,Fr],[[1,2,3],[1,2,3]]))
@@ -126,6 +140,6 @@ function sl_mag_trans_vumps(T,chi,Jc,Al=[],Ar=[],Ac=[],C=[],Fl=[],Fr=[];ep=1e-12
         if err<ep break end
     end
 
-    return Al,Ar,Ac,C,Fl,Fr,free_energy,err
+    return Al,Ar,Ac,C,Fl,Fr,free_energy,err,[λl,λr,λAc,λC]
 
 end
