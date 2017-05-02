@@ -52,15 +52,17 @@ end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
 
-#=
+# #=
 #random init MPS Alu,Aru
 chi_spin=[0.0,0.0,0.5,0.5,1.0,1.0]
 chi=Int(sum(x->2x+1,chi_spin))
 
 #spin symmetric subspace
 MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
-MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
 MA=reshape(MA,chi,chi,DD,size(MA)[end])
+MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+MF=spin_singlet_space_from_cg([chi_spin,virt_spin,virt_spin,chi_spin],[-1,-1,1,1])
+MF=reshape(MF,chi,DD,chi,size(MF)[end])
 
 srand()
 Alu=rand(Complex128,chi,chi,DD)
@@ -72,9 +74,10 @@ Acu=rand(Complex128,chi,chi,DD)
 Acu=sym_tensor_proj(Acu,MA)
 Cu=rand(Complex128,chi,chi)
 Cu=sym_tensor_proj(Cu,MC)
-=#
+# =#
 
 
+#=
 #init MPS from file
 chi_spin=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/chi24")[:,1]
 chi=Int(sum(x->2x+1,chi_spin))
@@ -86,10 +89,14 @@ Arvec=Alrvec[:,3]+im*Alrvec[:,4]
 MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
 MA=reshape(MA,chi,chi,DD,size(MA)[end])
 MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+MF=spin_singlet_space_from_cg([chi_spin,virt_spin,virt_spin,chi_spin],[-1,-1,1,1])
+MF=reshape(MF,chi,DD,chi,size(MF)[end])
+
 Alu=jcontract([MA,Alvec],[[-1,-2,-3,1],[1]])
 Aru=jcontract([MA,Arvec],[[-1,-2,-3,1],[1]])
 Acu=[]
 Cu=[]
+# =#
 
 
 Fl=[]
@@ -97,7 +104,7 @@ Fr=[]
 
 
 inc_spin_no=2*ones(Int,10)
-maxiter=100*ones(Int,11)
+maxiter=200*ones(Int,11)
 @show inc_spin_no, maxiter
 
 for inci=1:length(maxiter)
@@ -110,11 +117,14 @@ for inci=1:length(maxiter)
     @show diag(Jc)
 
     for iter=1:maxiter[inci]
-        Alu,Aru,Acu,Cu,Fl,Fr,_,err=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30)
+        Alu,Aru,Acu,Cu,Fl,Fr,_,err=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=2)
         Alu=sym_tensor_proj(Alu,MA)
         Aru=sym_tensor_proj(Aru,MA)
         Acu=sym_tensor_proj(Acu,MA)
         Cu=sym_tensor_proj(Cu,MC)
+        @show vecnorm(sym_tensor_proj(Fl,MF)-Fl)/vecnorm(Fl)
+        Fl=sym_tensor_proj(Fl,MF)
+        Fr=sym_tensor_proj(Fr,MF)
         @show svd_spin_sym_tensor(Cu,[1],[chi_spin,chi_spin],[1,-1])[[2,4]]
 
         #lower imps by symmetry
@@ -159,6 +169,8 @@ for inci=1:length(maxiter)
     MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
     MA=reshape(MA,chi,chi,DD,size(MA)[end])
     MC=spin_singlet_space_from_cg([chi_spin,chi_spin],[1,-1])
+    MF=spin_singlet_space_from_cg([chi_spin,virt_spin,virt_spin,chi_spin],[-1,-1,1,1])
+    MF=reshape(MF,chi,DD,chi,size(MF)[end])
     println()
 
 end
