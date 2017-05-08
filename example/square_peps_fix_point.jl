@@ -52,9 +52,9 @@ end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
 
-# #=
+#=
 #random init MPS Alu,Aru
-chi_spin=[0.0,0.0,0.5,0.5,1.0,1.0]
+chi_spin=[0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 
 #spin symmetric subspace
@@ -77,11 +77,11 @@ Cu=sym_tensor_proj(Cu,MC)
 # =#
 
 
-#=
+# #=
 #init MPS from file
-chi_spin=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/chi24")[:,1]
+chi_spin=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/chi40")[:,1]
 chi=Int(sum(x->2x+1,chi_spin))
-Alrvec=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/Alr_chi24")
+Alrvec=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/Alr_chi40_IV")
 Alvec=Alrvec[:,1]+im*Alrvec[:,2]
 Arvec=Alrvec[:,3]+im*Alrvec[:,4]
 
@@ -94,19 +94,25 @@ MF=reshape(MF,chi,DD,chi,size(MF)[end])
 
 Alu=jcontract([MA,Alvec],[[-1,-2,-3,1],[1]])
 Aru=jcontract([MA,Arvec],[[-1,-2,-3,1],[1]])
+#check isometry
+@show size(Alu),size(Aru)
+@show vecnorm(Alu),vecnorm(Aru)
+@show diag(jcontract([Alu,conj(Alu)],[[1,-1,2],[1,-2,2]]))
+@show diag(jcontract([Aru,conj(Aru)],[[-1,1,2],[-2,1,2]]))
 Acu=[]
 Cu=[]
 # =#
-
 
 Fl=[]
 Fr=[]
 
 
-inc_spin_no=2*ones(Int,10)
-maxiter=200*ones(Int,11)
+inc_spin_no=2*ones(Int,1)
+maxiter=50*ones(Int,1)
 @show inc_spin_no, maxiter
+f0=0
 
+λ0=[]
 for inci=1:length(maxiter)
 
     err=1
@@ -117,15 +123,22 @@ for inci=1:length(maxiter)
     @show diag(Jc)
 
     for iter=1:maxiter[inci]
-        Alu,Aru,Acu,Cu,Fl,Fr,_,err=sl_mag_trans_vumps(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=2)
+        if inci==1 && iter==1
+            Alu,Aru,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=4)
+        else
+            Alu,Aru,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=4,f0=true,λ0=λ0)
+        end
         Alu=sym_tensor_proj(Alu,MA)
         Aru=sym_tensor_proj(Aru,MA)
         Acu=sym_tensor_proj(Acu,MA)
         Cu=sym_tensor_proj(Cu,MC)
-        @show vecnorm(sym_tensor_proj(Fl,MF)-Fl)/vecnorm(Fl)
-        Fl=sym_tensor_proj(Fl,MF)
-        Fr=sym_tensor_proj(Fr,MF)
         @show svd_spin_sym_tensor(Cu,[1],[chi_spin,chi_spin],[1,-1])[[2,4]]
+        @show vecnorm(sym_tensor_proj(Fl,MF)-Fl)/vecnorm(Fl)
+        #Fl=sym_tensor_proj(Fl,MF)
+        #Fr=sym_tensor_proj(Fr,MF)
+
+    @show jcontract([Alu,conj(MA)],[[1,2,3],[1,2,3,-1]])
+    @show jcontract([Aru,conj(MA)],[[1,2,3],[1,2,3,-1]])
 
         #lower imps by symmetry
         Ald=jcontract([Alu,WW],[[-1,-2,1],[1,-3]])
@@ -137,10 +150,13 @@ for inci=1:length(maxiter)
 
         if err<1e-10 break end
         
+        #=
+        #reinit Fl,Fr
         if iter%20==0 && iter<maxiter[inci]
             Fl=[]
             Fr=[]
         end
+        =#
     end
 
     @show jcontract([Alu,conj(MA)],[[1,2,3],[1,2,3,-1]])
@@ -157,13 +173,18 @@ for inci=1:length(maxiter)
     @show jcontract([A2c,conj(MA2c)],[[1,2,3,4],[1,2,3,4,-1]])
     =#
 
+    chi_old=chi
     @time Alu,Aru,chi,chi_spin=spin_sym_dlmps_inc_chi(Alu,Aru,A2c,inc_spin_no[inci],virt_spin,chi_spin,[1,-1,1,-1])
     updated_Cu=zeros(eltype(Cu),chi,chi)
     updated_Cu[1:size(Cu,1),1:size(Cu,2)]=Cu
     Cu=updated_Cu
     Acu=jcontract([Alu,Cu],[[-1,1,-3],[1,-2]])
-    Fl=[]
-    Fr=[]
+    Fl_old=Fl
+    Fr_old=Fr
+    Fl=zeros(Complex128,chi,DD,chi)
+    Fl[1:chi_old,:,1:chi_old]=Fl_old
+    Fr=zeros(Complex128,chi,DD,chi)
+    Fr[1:chi_old,:,1:chi_old]=Fr_old
 
     #spin symmetric subspace
     MA=spin_singlet_space_from_cg([chi_spin,chi_spin,virt_spin,virt_spin],[1,-1,1,-1])
