@@ -2,7 +2,7 @@
 include("../src/JTensor.jl")
 using JTensor
 
-#=
+# #=
 #pi srvb
 T=[zeros(2,3,3,3,3) for i=1:2]
 T[1][1,2,3,3,3]=1
@@ -26,7 +26,7 @@ T[2][2,3,3,3,1]=-1
 virt_spin=[0.5,0]
 # =#
 
-# #=
+#=
 #pi rvb D=6
 T=readdlm("/home/jiangsb/code/JTensor.jl/tensor_data/square_pi_flux")
 T=[T[:,1],T[:,2]]
@@ -52,9 +52,9 @@ end
 WW=reshape(jcontract([W,W],[[-1,-3],[-2,-4]]),DD,DD)
 
 
-#=
+# #=
 #random init MPS Alu,Aru
-chi_spin=[0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5]
+chi_spin=[0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.5,0.5,0.5,0.5,0.5]
 chi=Int(sum(x->2x+1,chi_spin))
 
 #spin symmetric subspace
@@ -77,11 +77,11 @@ Cu=sym_tensor_proj(Cu,MC)
 # =#
 
 
-# #=
+#=
 #init MPS from file
 chi_spin=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/chi40")[:,1]
 chi=Int(sum(x->2x+1,chi_spin))
-Alrvec=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/Alr_chi40_III")
+Alrvec=readcsv("/home/jiangsb/code/JTensor.jl/tensor_data/Alr_chi40")
 Alvec=Alrvec[:,1]+im*Alrvec[:,2]
 Arvec=Alrvec[:,3]+im*Alrvec[:,4]
 
@@ -107,8 +107,8 @@ Fl=[]
 Fr=[]
 
 
-inc_spin_no=2*ones(Int,10)
-maxiter=100*ones(Int,11)
+inc_spin_no=1*ones(Int,20)
+maxiter=100*ones(Int,21)
 @show inc_spin_no, maxiter
 f0=0
 
@@ -124,8 +124,8 @@ for inci=1:length(maxiter)
     @show diag(Jc)
 
     for iter=1:maxiter[inci]
-        if inci==1 && iter==1
-        #if inci==1
+        #if inci==1 && iter==1
+        if err>0.1 || inci==1
             Alu,Aru,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=nev,λ0=λ0)
         else
             Alu,Aru,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=err/10,maxiter=1,ncv=30,nev=nev,f0=true,λ0=λ0)

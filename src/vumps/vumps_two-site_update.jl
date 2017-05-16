@@ -60,7 +60,7 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     end
     svals_ordered=sort(svals_unique,rev=true)
     n0=inc_spin_no
-    while svals_ordered[inc_spin_no]*0.9<svals_ordered[inc_spin_no+1]
+    while svals_ordered[inc_spin_no]*0.99<svals_ordered[inc_spin_no+1]
         println("add more spins due to small gaps of svals!")
         inc_spin_no+=1 
     end

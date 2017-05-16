@@ -57,9 +57,10 @@ Fr=[]
 Jc=mapreduce(x->[1-4*mod(x,1) for i=1:2x+1],append!,chi_spin)
 Jc=diagm(Jc)
 
-λ0=[]
+λ0=[0,0,0,0]
 
-Alu2,Aru2,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=1e-10,maxiter=1,ncv=30,nev=4)
+nev=10
+Alu2,Aru2,Acu,Cu,Fl,Fr,_,err,λ0=JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Alu,Aru,Acu,Cu,Fl,Fr,e0=1e-10,maxiter=1,ncv=100,nev=nev,λ0=λ0)
 @show 1-abs(dot(Alu2[:],Alu[:]))/(norm(Alu2[:])*norm(Alu[:]))
 for t=0:0.1:1
     @show t
@@ -67,5 +68,5 @@ for t=0:0.1:1
     Ar_test=t*Aru+(1-t)Aru2
     @show 1-abs(dot(Al_test[:],Alu[:]))/(norm(Al_test[:])*norm(Alu[:]))
     @show 1-abs(dot(Al_test[:],Alu2[:]))/(norm(Al_test[:])*norm(Alu2[:]))
-    JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Al_test,Ar_test,Acu,Cu,Fl,Fr,e0=1e-10,maxiter=1,ncv=30,nev=4,f0=true,λ0=λ0)
+    JTensor.sl_mag_trans_vumps_test(TTu,chi,Jc,Al_test,Ar_test,Acu,Cu,Fl,Fr,e0=1e-10,maxiter=1,ncv=100,nev=nev,f0=true,λ0=λ0)
 end
