@@ -23,12 +23,9 @@ function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
     tol=1e-12
     T=T_init/λ #normalize MPO
     B=rand(elemtype,chi,chi,Dv)
-    B=jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]]) #fix left gauge of B
+    B=B-jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]]) #fix left gauge of B
 
     #solve eigen equation to obtain B
-    #=TODO: 
-    1. Use bicgstab in IterativeSolver.jl to obtain LB and RB
-    =#
     Teff=MPO_Heff(...)
     λB,B,_,Bniter,Bnmult=eigs(Teff,nev=1,v0=B[:],tol=tol)
     λB=λB[1]
@@ -37,7 +34,7 @@ function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
 
 
     #check if B in the left gauge
-    @show norm(B[:]-jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]])[:]) #fix left gauge of B
+    @show norm(jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]])[:]) #fix left gauge of B
 
     return B
 end
