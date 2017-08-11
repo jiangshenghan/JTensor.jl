@@ -29,8 +29,9 @@ function Base.A_mul_B!(y::AbstractVector,heff:MPO_Heff,x::AbstractVector)
     T,Al,Ar,Fl,Fr=heff._tensor_list
     B=reshape(x,size(Al))
     #TODO: Use bicgstab in IterativeSolver.jl to obtain LB and RB
+    tol=1e-12
     LB=jcontract([Fl,B,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
-    LB=
+    LB=bicstabl(,LB,tol=tol)
     RB=jcontract([Fr,B,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
     RB=
     res=jcontract([LB,Ar,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])*exp(-im*heff._p)+jcontract([Fl,Al,T,RB],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])*exp(im*heff._p)+jcontract([Fl,B,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])
