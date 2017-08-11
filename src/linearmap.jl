@@ -2,7 +2,7 @@
 # type LinearMap
 """
 LinearMap provides an interface for the multiplication of a general tensor network to a "vector".
-This is very useful when we try to compute eig problems for tensors. tensor_list and legs_list follows definition in jcontract. We require tensor_list to have same element type. Notice that on the position of "vector", we also input a random tensor with the same dims and eltype as "vector"
+This is very useful when we try to compute eig problems for tensors. tensor_list and legs_list follows definition in jcontract. We require tensor_list to have the same element type. Notice that on the position of "vector", we also input a random tensor with the same dims and eltype as "vector"
 """
 
 type LinearMap
@@ -23,7 +23,7 @@ function Base.size(lm::LinearMap)
     return (outsize,insize)
 end
 
-Base.eltype(lm::LinearMap)=lm._elemtype;
+Base.eltype(lm::LinearMap)=lm._elemtype
 
 Base.issymmetric(lm::LinearMap)=lm._issym
 
