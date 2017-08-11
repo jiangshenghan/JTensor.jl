@@ -1,7 +1,7 @@
 
 module JTensor
 
-import GSL
+import GSL, IterativeSolvers
 
 export jcontract, LinearMap, polardecomp 
 export spin_sym_space, spin_singlet_space_from_cg, sym_tensor_proj, svd_spin_sym_tensor,spin_sym_tensor_nullspace

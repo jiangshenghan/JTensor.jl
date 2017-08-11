@@ -27,7 +27,7 @@ function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
     B=B-jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]]) #fix left gauge of B
 
     #solve eigen equation to obtain B
-    Teff=MPO_Heff(...)
+    Teff=MPO_Heff([T,Al,Ar,Fl,Fr],p)
     λB,B,_,Bniter,Bnmult=eigs(Teff,nev=1,v0=B[:],tol=tol)
     λB=λB[1]
     B=B[:,1]
