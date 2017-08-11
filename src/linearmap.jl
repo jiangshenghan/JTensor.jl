@@ -23,6 +23,8 @@ function Base.size(lm::LinearMap)
     return (outsize,insize)
 end
 
+Base.size(lm::JTensor.LinearMap,d)=d<=2?size(lm)[d]:1
+
 Base.eltype(lm::LinearMap)=lm._elemtype
 
 Base.issymmetric(lm::LinearMap)=lm._issym

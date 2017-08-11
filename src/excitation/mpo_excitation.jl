@@ -22,6 +22,7 @@ function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
     Dh,Dv=size(T,1,3)
     tol=1e-12
     T=T_init/λ #normalize MPO
+    Fr=Fr/jcontract([Fl,Fr],[[1,2,3],[1,2,3]]) #normalize Fl,Fr
     B=rand(elemtype,chi,chi,Dv)
     B=B-jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]]) #fix left gauge of B
 
