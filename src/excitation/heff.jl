@@ -1,7 +1,5 @@
 
-"""
-This file provides interface to obtain Heff for excited state
-"""
+#This file provides interface to obtain Heff for excited state
 
 """
 MPO as original Hamiltonian
@@ -35,20 +33,26 @@ Base.eltype(heff::MPO_Heff)=heff._elemtype
 
 Base.issymmetric(heff::MPO_Heff)=heff._issym
 
-function Base.A_mul_B!(y::AbstractVector,heff:MPO_Heff,x::AbstractVector)
-    T,Al,Ar,Fl,Fr=heff._tensor_list
+function Base.A_mul_B!(y::AbstractVector,heff::MPO_Heff,x::AbstractVector)
+    T,Al,Ar,C,Fl,Fr=heff._tensor_list
     B=reshape(x,size(Al))
-    tol=1e-12
-    LB=jcontract([Fl,B,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
-    @show vecdot(conj(Fr),LB)
-    LB=LB-vecdot(conj(Fr),LB)*Fl
-    LB=bicstabl(GeoSeries([LB,Ar,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]],1,Fr,Fl,-heff._p),LB,tol=tol,log=true)
-    RB=jcontract([Fr,B,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
-    @show vecdot(conj(Fl,RB))
-    RB=RB-vecdot(conj(Fl),RB)*Fr
-    RB=bicstabl(GeoSeries([RB,Al,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]],1,Fl,Fr,heff._p),RB,tol=tol,log=true)
+    tol=1e-10
+    n_mv=2000
 
-    res=jcontract([LB,Ar,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])*exp(-im*heff._p)+jcontract([Fl,Al,T,RB],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])*exp(im*heff._p)+jcontract([Fl,B,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])
+    bl=jcontract([Fl,B,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]])
+    @show jcontract([bl,conj(C),Fr],[[1,2,3],[3,4],[1,2,4]])
+    FlC=jcontract([Fl,C],[[1,-2,-3],[1,-1]])
+    bl=bl-jcontract([bl,conj(C),Fr],[[1,2,3],[3,4],[1,2,4]])*FlC
+
+    br=jcontract([Fr,B,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]])
+    @show jcontract([br,conj(C),Fl],[[1,2,3],[3,4],[1,2,4]])
+    FrC=jcontract([Fr,C],[[1,-2,-3],[1,-1]])
+    br=br-jcontract([br,conj(C),Fl],[[1,2,3],[3,4],[1,2,4]])*FrC
+
+    LB=IterativeSolvers.bicgstabl(GeoSeries([bl,Ar,T,conj(Al)],[[1,2,3],[1,-1,4],[2,-2,4,5],[3,-3,5]],1,jcontract([Fr,conj(C)],[[-1,-2,1],[-3,1]]),FlC,-heff._p),bl,tol=tol,log=true,max_mv_products=n_mv)
+    RB=IterativeSolvers.bicgstabl(GeoSeries([br,Al,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]],1,jcontract([Fl,conj(C)],[[-1,-2,1],[1,-3]]),FrC,heff._p),br,tol=tol,log=true,max_mv_products=n_mv)
+
+    res=exp(-im*heff._p)*jcontract([LB,Ar,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])+exp(im*heff._p)*jcontract([Fl,Al,T,RB],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])+jcontract([Fl,B,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])
     copy!(y,res[:])
 end
 
