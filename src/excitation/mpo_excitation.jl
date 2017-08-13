@@ -4,7 +4,7 @@ Given the ground state of an infinite translationally invariant MPO operator, ob
 
 excition ansatz can be represented as
                  ... ---Al---B---Ar--- ...
-sum_n exp(ipn) x        |    |   |
+sum_n exp(ipn)          |    |   |
                             (sn)
 
 For tensor T, legs order as (left,right,up,down)
@@ -12,7 +12,7 @@ legs orders for Al,Ar,B are (left,right,down)
 
 returns
 """
-function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
+function mpo_excitation(T,p,Al,Ar,C,Fl,Fr,λ;elemtype=Complex128)
 
     print("MPO excitation!")
 
@@ -21,21 +21,19 @@ function mpo_excitation(T_init,p,Al,Ar,Fl,Fr,λ;elemtype=Complex128)
     @show chi,p
     Dh,Dv=size(T,1,3)
     tol=1e-12
-    T=T_init/λ #normalize MPO
-    Fr=Fr/jcontract([Fl,Fr],[[1,2,3],[1,2,3]]) #normalize Fl,Fr
+    #Fr=Fr/jcontract([Fl,Fr],[[1,2,3],[1,2,3]]) #normalize Fl,Fr
     B=rand(elemtype,chi,chi,Dv)
     B=B-jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]]) #fix left gauge of B
 
     #solve eigen equation to obtain B
-    Teff=MPO_Heff([T,Al,Ar,Fl,Fr],p)
+    Teff=MPO_Heff([T/λ,Al,Ar,C,Fl,Fr],p)
     λB,B,_,Bniter,Bnmult=eigs(Teff,nev=1,v0=B[:],tol=tol)
     λB=λB[1]
     B=B[:,1]
     B=reshape(B[:],chi,chi,Dv)
 
-
     #check if B in the left gauge
-    @show norm(jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]])[:]) #fix left gauge of B
+    @show norm(jcontract([B,conj(Al),Al],[[1,-2,2],[1,3,2],[-1,3,-3]])[:]) 
 
     return B
 end
