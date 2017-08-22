@@ -5,7 +5,7 @@
 MPO as original Hamiltonian
 We use the left gauge of B 
 We assume normalized condition for MPO T, such that free energy equal to one
-_tensor_list are ordered as (T,Al,Ar,C,Fl,Fr)
+_tensor_list are ordered as (T,Al,Ar,C,Fl,Fr,Vl)
 """
 type MPO_Heff
     _tensor_list
@@ -23,7 +23,7 @@ end
 MPO_Heff(tensor_list,p;issym=false,elemtype=Complex128)=MPO_Heff(tensor_list,p,issym,elemtype)
 
 function Base.size(heff::MPO_Heff)
-    len=length(_tensor_list[2])
+    len=prod(size(_tensor_list[end],1,2))
     return (len,len)
 end
 
@@ -34,8 +34,9 @@ Base.eltype(heff::MPO_Heff)=heff._elemtype
 Base.issymmetric(heff::MPO_Heff)=heff._issym
 
 function Base.A_mul_B!(y::AbstractVector,heff::MPO_Heff,x::AbstractVector)
-    T,Al,Ar,C,Fl,Fr=heff._tensor_list
-    B=reshape(x,size(Al))
+    T,Al,Ar,C,Fl,Fr,Vl=heff._tensor_list
+    XB=reshape(x,size(Vl,2,1))
+    B=jcontract([Vl,XB],[[-1,-3,1],[1,-2]])
     tol=1e-10
     n_mv=2000
 
@@ -53,6 +54,7 @@ function Base.A_mul_B!(y::AbstractVector,heff::MPO_Heff,x::AbstractVector)
     RB=IterativeSolvers.bicgstabl(GeoSeries([br,Al,T,conj(Ar)],[[1,2,3],[-1,1,4],[-2,2,4,5],[-3,3,5]],1,jcontract([Fl,conj(C)],[[-1,-2,1],[1,-3]]),FrC,heff._p),br,tol=tol,log=true,max_mv_products=n_mv)
 
     res=exp(-im*heff._p)*jcontract([LB,Ar,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])+exp(im*heff._p)*jcontract([Fl,Al,T,RB],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])+jcontract([Fl,B,T,Fr],[[1,2,-1],[1,4,3],[2,5,3,-3],[4,5,-2]])
+    res=jcontract([conj(Vl),res],[[1,-1,2],[1,-2,2]])
     copy!(y,res[:])
 end
 
