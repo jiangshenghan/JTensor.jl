@@ -7,6 +7,7 @@ export jcontract, LinearMap, polardecomp
 export spin_sym_space, spin_singlet_space_from_cg, sym_tensor_proj, svd_spin_sym_tensor,spin_sym_tensor_nullspace
 export sl_one_vumps, sl_two_vumps, sl_mult_vumps_par, sl_mag_trans_vumps, dl_one_vumps, dl_two_vumps, dl_mult_vumps_seq, square_pi_flux_spin_sym_two_site_update, mag_trans_A2c, spin_sym_dlmps_inc_chi
 export sl_mult_mpo_mps, dl_mult_mpo_mps
+export tebd_sweep, tebd_even_odd_one_step
 export square_heisenberg
 
 include("jcontract.jl")
@@ -30,6 +31,8 @@ include("vumps/square_pi_flux_two_site_update.jl")
 
 include("itebd/sl_mult_mpo_mps.jl")
 include("itebd/dl_mult_mpo_mps.jl")
+
+include("tebd/tebd.jl")
 
 include("measurement/heisenberg_energy.jl")
 
