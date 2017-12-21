@@ -20,7 +20,7 @@ chi is the maximal bond dimension while eps is the minimum value singular value 
 return (A)
 """
 #TODO: Test more on this function!
-function tebd_sweep(A,U,δt,tf;chi=200,eps=1e-8)
+function tebd_sweep(A,U,δt,tf;chi=100,eps=1e-6)
     L=size(A,1)
     dp=size(U[1],1)
     t=0
@@ -95,7 +95,7 @@ chi is the maximal bond dimension while eps is the minimum value singular value 
 
 return (A,B)
 """
-function tebd_even_odd_one_step(A,B,Ue,Uo;chi=200,eps=1e-8)
+function tebd_even_odd_one_step(A,B,Ue,Uo;chi=100,eps=1e-6)
     L=size(A,1)
     dp=size(Ue[1],1)
 
@@ -103,7 +103,7 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=200,eps=1e-8)
     for k=1:div(L,2)
         j=2k-1
         Dl=size(A[j],1)
-        Dr=size(A[j+1],1)
+        Dr=size(A[j+1],2)
 
         #construct Tj
         if j==1
@@ -119,25 +119,24 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=200,eps=1e-8)
         svals=Tj_svd[:S]/Tj_svd[:S][1]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
-        @show j,DD,svals[1:DD]
+        @show j,DD
+        @show svals[1:DD]
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])
 
-        if j==1 A[j]=Tj_svd[:U][:,1:DD]
-        else A[j]=inv(B[j-1])*Tj_svd[:U][:,1:DD] end
-        A[j]=permutedims(reshape(A[j],Dl,dp,DD),[1,3,2])
+        A[j]=permutedims(reshape(Tj_svd[:U][:,1:DD],Dl,dp,DD),[1,3,2])
+        if j>1 A[j]=jcontract([inv(B[j-1]),A[j]],[[-1,1],[1,-2,-3]]) end
 
-        if j==L-1 A[j+1]=Tj_svd[:Vt][1:DD,:]
-        else A[j+1]=Tj_svd[:Vt][1:DD,:]*inv(B[j+1]) end
-        A[j+1]=reshape(A[j+1],DD,Dr,dp)
+        A[j+1]=reshape(Tj_svd[:Vt][1:DD,:],DD,Dr,dp)
+        if j<L-1 A[j+1]=jcontract([A[j+1],inv(B[j+1])],[[-1,1,-3],[1,-2]]) end
     end
 
     #apply Ue(δt)
     for k=1:div(L-1,2)
         j=2k
         Dl=size(A[j],1)
-        Dr=size(A[j+1],1)
+        Dr=size(A[j+1],2)
 
         #construct Tj
         if j==L-1
@@ -151,24 +150,24 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=200,eps=1e-8)
         svals=Tj_svd[:S]/Tj_svd[:S][1]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
-        @show j,DD,svals[1:DD]
+        @show j,DD
+        @show svals[1:DD]
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])
 
-        A[j]=inv(B[j-1])*Tj_svd[:U][:,1:DD]
-        A[j]=permutedims(reshape(A[j],Dl,dp,DD),[1,3,2])
+        A[j]=permutedims(reshape(Tj_svd[:U][:,1:DD],Dl,dp,DD),[1,3,2])
+        if j>1 A[j]=jcontract([inv(B[j-1]),A[j]],[[-1,1],[1,-2,-3]]) end
 
-        if j==L-1 A[j+1]=Tj_svd[:Vt][1:DD,:]
-        else A[j+1]=Tj_svd[:Vt][1:DD,:]*inv(B[j+1]) end
-        A[j+1]=reshape(A[j+1],DD,Dr,dp)
+        A[j+1]=reshape(Tj_svd[:Vt][1:DD,:],DD,Dr,dp)
+        if j<L-1 A[j+1]=jcontract([A[j+1],inv(B[j+1])],[[-1,1,-3],[1,-2]]) end
     end
 
     #apply Uo(δt/2)
     for k=1:div(L,2)
         j=2k-1
         Dl=size(A[j],1)
-        Dr=size(A[j+1],1)
+        Dr=size(A[j+1],2)
 
         #construct Tj
         if j==1
@@ -184,18 +183,19 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=200,eps=1e-8)
         svals=Tj_svd[:S]/Tj_svd[:S][1]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
-        @show j,DD,svals[1:DD]
+        @show j,DD
+        @show svals[1:DD]
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])
 
-        if j==1 A[j]=Tj_svd[:U][:,1:DD]
-        else A[j]=inv(B[j-1])*Tj_svd[:U][:,1:DD] end
-        A[j]=permutedims(reshape(A[j],Dl,dp,DD),[1,3,2])
+        A[j]=permutedims(reshape(Tj_svd[:U][:,1:DD],Dl,dp,DD),[1,3,2])
+        if j>1 A[j]=jcontract([inv(B[j-1]),A[j]],[[-1,1],[1,-2,-3]]) end
 
-        if j==L-1 A[j+1]=Tj_svd[:Vt][1:DD,:]
-        else A[j+1]=Tj_svd[:Vt][1:DD,:]*inv(B[j+1]) end
-        A[j+1]=reshape(A[j+1],DD,Dr,dp)
+        A[j+1]=reshape(Tj_svd[:Vt][1:DD,:],DD,Dr,dp)
+        if j<L-1 A[j+1]=jcontract([A[j+1],inv(B[j+1])],[[-1,1,-3],[1,-2]]) end
     end
+
+    return A,B
 end
 
