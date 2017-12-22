@@ -4,7 +4,7 @@ using JTensor
 
 L=40
 dp=2
-δt=0.05
+δt=0.02
 tf=500
 @show L,δt,tf
 
@@ -16,8 +16,9 @@ Z=[1 0; 0 -1]
 #construct two-site Hamiltonian matrix, where col act on state
 #TFIM
 J=1
-h=0.3
-h2=0.2
+h=0.075
+h2=0.075
+@show J,h,h2
 H=[]
 push!(H,-J*jcontract([Z,Z],[[-1,-3],[-2,-4]])-h*jcontract([X,I],[[-1,-3],[-2,-4]])-0.5h*jcontract([I,X],[[-1,-3],[-2,-4]])-h2*jcontract([X,X],[[-1,-3],[-2,-4]]))
 for j=2:L-2
@@ -63,6 +64,13 @@ while t<tf
     bulk_ind=div(L,2)
     bulk_tens=jcontract([B[bulk_ind-1],A[bulk_ind],B[bulk_ind]],[[-1,1],[1,2,-3],[2,-2]])
     bulk_corr=-jcontract([bulk_tens,Z,conj(bulk_tens)],[[1,2,3],[3,4],[1,2,4]])/norm(bulk_tens[:])
+
+    #meaure <Z_1 Z_L>
+    ZZ_corr=jcontract([A[1],Z,conj(A[1]),B[1],conj(B[1])],[[1,4,2],[2,3],[1,5,3],[4,-1],[5,-2]])
+    for j=2:L-1
+        ZZ_corr=jcontract([ZZ_corr,A[j],conj(A[j]),B[j],conj(B[j])],[[1,2],[1,4,3],[2,5,3],[4,-1],[5,-2]])
+    end
+    
     @show t,bdry_corr,bulk_corr
     A,B=tebd_even_odd_one_step(A,B,Ue,Uo;eps=1e-6)
     t=t+δt

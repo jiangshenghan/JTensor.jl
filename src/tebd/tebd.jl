@@ -77,7 +77,8 @@ Time evolution divided to even and odd group Uo[j]~U(2j-1,j) and Ue[j]~U(2j,2j+1
 
 Apply U(δt)~Uo(δt/2)Ue(δt)Uo(δt/2)+O(δt^3)
 
-The input and output MPS is always set to be canonical form, with diagonal B[j] stores singular value
+The input and output MPS is always set to be canonical form, with diagonal B[j] stores singular value and is normalized to norm 1
+In general, it is hard to obtain the canonical form for a finite MPS. For tebd, we usually start with product states, which is automatically in canonical form.
 
 -B[j-1]-A[j]-B[j]-A[j+1]-B[j+1]-
         |         |               => Contract to T tensor, svd, truncate
@@ -115,12 +116,14 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=100,eps=1e-6)
         end
 
         #svd and drop off small singular value
+        #XXX: Strictly speaking, after truction, the MPS is no longer in canonical form. This may cause problem?
         Tj_svd=svdfact(reshape(Tj,Dl*dp,Dr*dp))
-        svals=Tj_svd[:S]/Tj_svd[:S][1]
+        svals=Tj_svd[:S]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
+        svals=svals[1:DD]/norm(svals[1:DD])
         @show j,DD
-        @show svals[1:DD]
+        @show svals
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])
@@ -147,11 +150,12 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=100,eps=1e-6)
 
         #svd and drop off small singular value
         Tj_svd=svdfact(reshape(Tj,Dl*dp,Dr*dp))
-        svals=Tj_svd[:S]/Tj_svd[:S][1]
+        svals=Tj_svd[:S]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
+        svals=svals[1:DD]/norm(svals[1:DD])
         @show j,DD
-        @show svals[1:DD]
+        @show svals
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])
@@ -180,11 +184,12 @@ function tebd_even_odd_one_step(A,B,Ue,Uo;chi=100,eps=1e-6)
 
         #svd and drop off small singular value
         Tj_svd=svdfact(reshape(Tj,Dl*dp,Dr*dp))
-        svals=Tj_svd[:S]/Tj_svd[:S][1]
+        svals=Tj_svd[:S]
         DD=min(findfirst(x->x<eps,svals)-1,chi)
         if DD<0 DD=min(chi,size(svals,1)) end
+        svals=svals[1:DD]/norm(svals[1:DD])
         @show j,DD
-        @show svals[1:DD]
+        @show svals
 
         #update A[j], B[j], A[j+1]
         B[j]=diagm(svals[1:DD])

@@ -1,4 +1,5 @@
 result/
 *.mem
 *.ipynb
+cluster_compile/
 .*
