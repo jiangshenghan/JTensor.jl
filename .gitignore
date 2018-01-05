@@ -1,3 +1,8 @@
 result/
 *.mem
+<<<<<<< HEAD
+=======
+*.ipynb
+cluster_compile/
+>>>>>>> 4d461a7e5d92bafebe939e8cb2678d2d8daffafe
 .*
