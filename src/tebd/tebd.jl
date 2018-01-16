@@ -92,7 +92,7 @@ Uo evolve δt/2 while Ue evolve δt
 legs order of U: lu,ru,ld,rd
 legs order of T: l,ld,r,rd
 
-chi is the maximal bond dimension while eps is the minimum value singular value we kept. We normalize the largest singular value to be 1
+chi is the maximal bond dimension while eps is the minimum value singular value we kept. We normalize wf norm to be 1
 
 return (A,B)
 """
