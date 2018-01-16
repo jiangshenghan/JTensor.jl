@@ -4,16 +4,7 @@ using JTensor
 
 L=40
 d=2
-δτ=0.05
-τf=50
-δt1=0.02
-t1=5
-δt2=0.02
-t2=t1+10
-δt3=0.02
-t3=t2+100
-
-@show L,δt1,t1,δt2,t2,δt3,t3
+@show L
 
 I=[1 0; 0 1]
 X=[0 1; 1 0]
@@ -25,10 +16,21 @@ Z=[1 0; 0 -1]
 J=1
 h=0.2
 h2=0
-λ=-0.05
-λf=1 #TODO: Should we choose the same sign λf for both positive and negative λ?
-δλ=λf*δt2/(t2-t1)
+λ=-0.04
+λf=0.3 
+δλ=0.001
 @show J,h,h2,λ,λf,δλ
+
+δτ=0.05
+τf=50
+δt1=0.02
+t1=10
+δt2=0.02
+t2=t1+(λf-λ)/δλ*δt2
+δt3=0.02
+t3=t2+100
+@show δt1,t1,δt2,t2,δt3,t3
+
 H=[]
 push!(H,-J*jcontract([Z,Z],[[-1,-3],[-2,-4]])-h*jcontract([X,I],[[-1,-3],[-2,-4]])-0.5h*jcontract([I,X],[[-1,-3],[-2,-4]])-h2*jcontract([X,X],[[-1,-3],[-2,-4]]))
 for j=2:L-2
@@ -61,13 +63,29 @@ for k=1:div(L,2)
     Uo[k]=reshape(transpose(Uo[k]),d,d,d,d)
 end
 
-#initial state (we initialize MPS as a product state with fixed parity)
+#initial state
+##=
+#We initialize MPS as a product state with fixed parity
 A=[]
 for j=1:L
     push!(A,ones(1,1,d))
 end
 B=[]
 for j=1:L-1 push!(B,ones(1,1)) end
+# =#
+
+#=
+#we initialize MPS as a product state, whose parity is not fixed. Parity will be implemented when measurement
+A=[]
+for j=1:L
+    push!(A,zeros(1,1,d))
+    if j>div(L,2)-3 && j<div(L,2)+3 A[j][2]=1
+    else A[j][1]=1 end
+end
+B=[]
+for j=1:L-1 push!(B,ones(1,1)) end
+=#
+
 
 #imaginary tebd, find g.s.
 τ=0
@@ -95,6 +113,33 @@ while τ<τf
         @show τ,wf_norm,bond_energy,energy
     end
 end
+
+#create domain wall excitation acting string of X
+j1=div(L,2)-5
+j2=div(L,2)+5
+for i=j1:j2
+    A[i]=jcontract([A[i],X],[[-1,-2,1],[1,-3]])
+end
+#measure energy of excitation
+begin
+    wf_norm=jcontract([A[1],conj(A[1]),B[1],conj(B[1])],[[1,3,2],[1,4,2],[3,-1],[4,-2]])
+    for j=2:L-1
+        wf_norm=jcontract([wf_norm,A[j],conj(A[j]),B[j],conj(B[j])],[[1,2],[1,4,3],[2,5,3],[4,-1],[5,-2]])
+    end
+    wf_norm=jcontract([wf_norm,A[L],conj(A[L])],[[1,2],[1,4,3],[2,4,3]])
+
+    bond_energy=zeros(L-1)
+    bond_energy[1]=jcontract([A[1],B[1],A[2],B[2],H[1],conj(A[1]),conj(B[1]),conj(A[2]),conj(B[2])],[[1,2,5],[2,3],[3,4,6],[4,9],[5,6,7,8],[1,10,7],[10,11],[11,12,8],[12,9]])
+    for j=2:L-2
+        bond_energy[j]=jcontract([B[j-1],A[j],B[j],A[j+1],B[j+1],H[j],conj(B[j-1]),conj(A[j]),conj(B[j]),conj(A[j+1]),conj(B[j+1])],[[1,2],[2,3,7],[3,4],[4,5,8],[5,6],[7,8,9,10],[1,11],[11,12,9],[12,13],[13,14,10],[14,6]])
+    end
+    bond_energy[end]=jcontract([B[L-2],A[L-1],B[L-1],A[L],H[L-1],conj(B[L-2]),conj(A[L-1]),conj(B[L-1]),conj(A[L])],[[1,2],[2,3,6],[3,4],[4,5,7],[6,7,8,9],[1,10],[10,11,8],[11,12],[12,5,9]])
+
+    energy=sum(bond_energy)
+    print("excitation_energy\n")
+    @show wf_norm,bond_energy,energy
+end
+
 
 #evolve using Hamiltonian H(λ) with invariant λ
 #construct time evolution operator Ue(2k,2k+1,δt1) and Uo(2k-1,2k,δt1/2)
@@ -157,7 +202,6 @@ end
 #time evolution from t1 to t2 with time dependent Hamiltonian
 t=t1
 cind=div(L,2)
-λ=0
 while t<t2
     λ=λ+δλ
     H[cind]=-λ*jcontract([Z,Z],[[-1,-3],[-2,-4]])-0.5h*jcontract([X,I],[[-1,-3],[-2,-4]])-0.5h*jcontract([I,X],[[-1,-3],[-2,-4]])-h2*jcontract([X,X],[[-1,-3],[-2,-4]])
