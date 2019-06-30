@@ -16,13 +16,13 @@ Br[i]=B[i]*diagm(C[i])
 
 returns (B,C,Fl,Fr)
 """
-function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
+function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20,hard_truncate=false)
 
     #initialization
     N=size(T,1)
     Dh,Dv=size(T[1],1,3)
     DA=size(A[1],1)
-    @printf("chi=%d, ep=%e \n N=%d, Dh=%d, Dv=%d, DA=%d\n",chi,ep,N,Dh,Dv,DA)
+    @show chi,ep,N,Dh,Dv,DA
 
     Tc=conj(T)
     if Fl==[] Fl=rand(elemtype,DA,Dh,DA,Dh) end
@@ -56,7 +56,7 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     L=eigfact(Fl)
     println("left eigs:")
     println(L[:values])
-    L=reshape(L[:vectors]*diagm(sqrt(abs(L[:values]))),DA,Dh,DA*Dh)
+    L=reshape(L[:vectors]*diagm(sqrt.(abs.(L[:values]))),DA,Dh,DA*Dh)
     L=permutedims(L,[3,1,2])
 
     #right fixed point
@@ -87,7 +87,7 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     R=eigfact(Fr)
     println("right eigs:")
     println(R[:values])
-    R=reshape(R[:vectors]*diagm(sqrt(abs(R[:values]))),DA,Dh,DA*Dh)
+    R=reshape(R[:vectors]*diagm(sqrt.(abs.(R[:values]))),DA,Dh,DA*Dh)
     R=permutedims(R,[3,1,2])
 
     Fl=reshape(Fl,DA,Dh,DA,Dh)
@@ -99,13 +99,15 @@ function sl_mult_mpo_mps(A,T,chi,Fl=[],Fr=[];ep=1e-8,elemtype=Complex128,ncv=20)
     svdres=svdfact(jcontract([L,R],[[-1,1,2],[-2,1,2]]))
     U,S,Vt=svdres[:U],svdres[:S],svdres[:Vt]
     chic=chi
-    while (chic<DA*Dh)
-        if (S[chic]-S[chic+1])/S[chic]<1e-5
-            chic+=1
-        else break
+    if hard_truncate==false
+        while (chic<DA*Dh)
+            if (S[chic]-S[chic+1])/S[chic]<1e-5
+                chic+=1
+            else break
+            end
         end
+        chic=min(chic,DA*Dh)
     end
-    chic=min(chic,DA*Dh)
     U=U[:,1:chic]
     S=S/norm(S)
     S=S[1:chic]

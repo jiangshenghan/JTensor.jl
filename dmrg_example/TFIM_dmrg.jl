@@ -36,4 +36,6 @@ end
 push!(H_Ising,TL)
 
 #perform dmrg
-dmrg_mpo!(3,[6,10,20,30],H_Ising)
+dmrg_mpo!(3,[20,20,20],H_Ising)
+#dmrg_mpo!(4,[6,10,20,30],H_Ising)
+

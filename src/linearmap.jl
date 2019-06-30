@@ -31,3 +31,7 @@ function Base.A_mul_B!(y::AbstractVector,lm::LinearMap,x::AbstractVector)
     lm._tensor_list[lm._vecpos]=reshape(x,size(lm._tensor_list[lm._vecpos]))
     copy!(y,reshape(jcontract(lm._tensor_list,lm._legs_list),size(lm)[1]))
 end
+
+function Base.size(lm::LinearMap,n)
+    return size(lm)[n]
+end

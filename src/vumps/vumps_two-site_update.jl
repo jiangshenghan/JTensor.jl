@@ -24,7 +24,7 @@ For spin symmetric dl MPS, given Al,Ar,A2c, obtain updated Al',Ar',C' with incre
    ----A2c----                           ---Al/r--
    |  /   \  |  = >-U--S--Vt->,  where   |  |       =0
    --Nl   Nr--                           ---Nl/r--
-      |   |
+      \   |
 
 where U/Vt is cut to dchi cols/rows, and dchi should be chosen to perserve spin deg
 We should keep track of spin_reps. Here pspin stores spin reps for a single physical spin. For dlmps, one tensor contains two physical spins
@@ -117,4 +117,70 @@ function spin_sym_dlmps_inc_chi(Al,Ar,A2c,inc_spin_no,pspin,chi_spin,Aarrows)
     println()
 
     return updated_Al,updated_Ar,updated_chi,updated_chi_spin
+end
+
+
+"""
+Increase bond dimension of uMPS from chi_old to chi with one site per uc
+
+first generate A2c
+   --Al--C--Ar--
+  /  |      |   \          ---A2c---
+Fl---Wh-----Wh---Fr  =        / \
+  \  |      |   /
+     |      |   
+legs order for A2c: left,right,dl,dr
+
+Then, SVD and truncate 
+   ----A2c----                           ---Al--         --Ar---
+   |  /   \  |  = --U--S--Vt--,  where   |  |     =0,      |   | =0
+   --Nl   Nr--                           ---Nl--         --Nr---
+     |    |
+
+where U/Vt is cut to chi cols/rows
+
+updated:
+updated_Al= Al (Nl^*)U    updated_Ar= Ar       0    updated_C= C 0
+            0  0                      Vt(Nr^*) 0               0 0
+
+return updated_Al, updated_Ar, updated_C
+"""
+function one_site_vumps_inc_chi(Wh,chi,Al,Ar,C,Fl,Fr)
+    dp,chi_old=size(Al,3,1)
+
+    #obtain A2c
+    A2c=jcontract([Fl,Al,Wh,C,Ar,Wh,Fr],[[1,2,-1],[1,4,3],[2,6,3,-3],[4,5],[5,8,7],[6,9,7,-4],[8,9,-2]])
+
+    #obtain null space
+    Nl=nullspace(reshape(permutedims(Al,[2,1,3]),chi_old,chi_old*dp))
+    Nr=nullspace(reshape(Ar,chi_old,chi_old*dp))
+    Nl=reshape(Nl,chi_old,dp,(dp-1)*chi_old)
+    Nr=reshape(Nr,chi_old,dp,(dp-1)*chi_old)
+    #check null condition and normalization
+    @show vecnorm(jcontract([Al,Nl],[[1,-1,2],[1,2,-2]])) 
+    @show vecnorm(jcontract([Ar,Nr],[[-1,1,2],[1,2,-2]]))
+    @show diag(jcontract([Nl,conj(Nl)],[[1,2,-1],[1,2,-2]]))
+    @show diag(jcontract([Nr,conj(Nr)],[[1,2,-1],[1,2,-2]]))
+
+    #SVD on the new basis
+    proj_A2c=jcontract([Nl,A2c,Nr],[[1,2,-1],[1,4,2,3],[4,3,-2]])
+    svd_res=svdfact(proj_A2c)
+    dchi=chi-chi_old
+    U=svd_res[:U][:,1:dchi]
+    S=svd_res[:S][1:dchi]
+    Vt=svd_res[:Vt][1:dchi,:]
+
+    #update tensor
+    updated_Al=zeros(eltype(Al),chi,chi,dp)
+    updated_Al[1:chi_old,1:chi_old,:]=Al
+    updated_Al[1:chi_old,chi_old+1:chi,:]=jcontract([conj(Nl),U],[[-1,-3,1],[1,-2]])
+
+    updated_Ar=zeros(eltype(Ar),chi,chi,dp)
+    updated_Ar[1:chi_old,1:chi_old,:]=Ar
+    updated_Ar[chi_old+1:chi,1:chi_old,:]=jcontract([Vt,conj(Nr)],[[-1,1],[-2,-3,1]])
+
+    updated_C=zeros(eltype(C),chi,chi)
+    updated_C[1:chi_old,1:chi_old]=C
+
+    return updated_Al,updated_Ar, updated_C
 end

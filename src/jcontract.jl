@@ -10,7 +10,7 @@ the output tensor is sorted according to negative legs (-1,-2,-3)
 """
 function jcontract(tensor_list,legs_list)
 
-    #TODO:get trace of a single tensor
+    #TODO:contract several legs of a single tensor
 
     #initialization
     result_tensor=tensor_list[1]
@@ -18,6 +18,14 @@ function jcontract(tensor_list,legs_list)
     result_dims=collect(size(result_tensor))
 
     for k=2:size(tensor_list,1)
+        #special case: the previous contraction gives a scalar, namely, result tensor is a number
+        if result_legs==[]
+            result_tensor=result_tensor*tensor_list[k]
+            result_legs=legs_list[k]
+            result_dims=collect(size(tensor_list[k]))
+            continue
+        end
+
         curr_tensor=tensor_list[k]
         curr_legs=legs_list[k]
         curr_dims=collect(size(curr_tensor))
@@ -28,6 +36,7 @@ function jcontract(tensor_list,legs_list)
         curr_comm_inds=map(y->findfirst(x->x==y,curr_legs),comm_legs)
         curr_diff_inds=setdiff(1:ndims(curr_tensor),curr_comm_inds)
 
+        #@show k
         #println("comm_legs: ",comm_legs)
         #println("result_comm_inds: ",result_comm_inds)
         #println("result_diff_inds: ",result_diff_inds)
@@ -42,7 +51,12 @@ function jcontract(tensor_list,legs_list)
         result_tensor*=curr_tensor
         result_legs=[result_legs[result_diff_inds];curr_legs[curr_diff_inds]]
         result_dims=[result_dims[result_diff_inds];curr_dims[curr_diff_inds]]
+
+        #the case where result_tensor is a scalar
+        if result_legs==[] result_tensor=result_tensor[1]; continue end
+
         result_tensor=reshape(result_tensor,result_dims...)
+
 
         #println("result_legs: ",result_legs)
         #println("result_dims: ", result_dims)

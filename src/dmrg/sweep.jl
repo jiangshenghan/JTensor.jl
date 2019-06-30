@@ -57,11 +57,13 @@ function one_step_optimization_dmrg_sweep(js,A,T,Fl,Fr,χ;dir=1,elemtype=Complex
     #obtain updated two site tensor
     A2c=jcontract([A[js],A[js+1]],[[-1,1,-2],[1,-4,-3]])
     Heff=LinearMap([Fl[js],A2c,T[js],T[js+1],Fr[js+1]],[[1,2,-1],[1,3,4,5],[2,7,3,-2],[7,6,4,-3],[5,6,-4]],2,elemtype=elemtype) 
-    eigs_res=eigs(Heff,nev=1,v0=A2c[:],ncv=ncv)
+    eigs_res=eigs(Heff,nev=1,v0=A2c[:],ncv=ncv,which=:SR)
     λ,A2c=eigs_res[1:2]
     λ=λ[1];
     A2c=reshape(A2c,Dl*d,d*Dr)
-    println("energy_per_site:")
+    print("total energy: ")
+    @show λ
+    print("energy_per_site:  ")
     @show λ/L
 
     #svd decomp and cut bond dim
@@ -77,6 +79,10 @@ function one_step_optimization_dmrg_sweep(js,A,T,Fl,Fr,χ;dir=1,elemtype=Complex
     #calculate entanglement entropy between site js and site js+1
     entropy=sum(x->-x^2*2*log(x),S)
     @show entropy
+    if χc==χ 
+        cut_err=S[end] 
+        @show cut_err
+    end
     println()
 
     #obtain updated A[js], A[js+1], Fl[js+1](dir=1), Fr[js](dir=-1)
